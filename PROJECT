@@ -1,0 +1,7 @@
+domain: ""
+repo: github.com/mcavoyk/secret-manager
+resources:
+- group: "secret-manager.io"
+  kind: ExternalSecret
+  version: v1alpha1
+version: "2"
