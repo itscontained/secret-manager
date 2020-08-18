@@ -41,7 +41,7 @@ type ControllerOptions struct {
 
 	// Path to TLS certificate and private key on disk.
 	// The server key and certificate must be named tls.key and tls.crt, respectively.
-	TLSCertDir  string
+	TLSCertDir string
 
 	// TLSCipherSuites is the list of allowed cipher suites for the server.
 	// Values are from tls package constants (https://golang.org/pkg/crypto/tls/#pkg-constants).
@@ -96,7 +96,7 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 		"The port number to listen on for health connections.")
 
 	fs.StringVar(&s.TLSCertDir, "tls-cert-dir", "", ""+
-	"The path to TLS certificate and private key on disk.")
+		"The path to TLS certificate and private key on disk.")
 }
 
 func (s *ControllerOptions) Validate() error {

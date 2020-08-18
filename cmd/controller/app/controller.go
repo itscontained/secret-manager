@@ -25,11 +25,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd"
 
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	// kubernetes import to suppport cloud provider auth
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/tools/clientcmd"
 
 	log "k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
@@ -62,7 +62,7 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		MetricsBindAddress:      c.options.MetricsListenAddress,
 		Port:                    c.options.WebhookPort,
 		Namespace:               c.options.Namespace,
-		CertDir: 								 c.options.TLSCertDir,
+		CertDir:                 c.options.TLSCertDir,
 		LeaderElection:          c.options.LeaderElect,
 		LeaderElectionNamespace: c.options.LeaderElectionNamespace,
 		LeaderElectionID:        "secrets-manager-controller",

@@ -57,6 +57,10 @@ type VaultStore struct {
 // Configuration used to authenticate with a Vault server.
 // Only one of `tokenSecretRef`, `appRole` or `kubernetes` may be specified.
 type VaultAuth struct {
+	// TokenSecretRef authenticates with Vault by presenting a token.
+	// +optional
+	TokenSecretRef *smmeta.SecretKeySelector `json:"tokenSecretRef,omitempty"`
+
 	// AppRole authenticates with Vault using the App Role auth mechanism,
 	// with the role and secret stored in a Kubernetes Secret resource.
 	// +optional
@@ -76,9 +80,9 @@ type VaultAppRole struct {
 	// +kubebuilder:default=approle
 	Path string `json:"path"`
 
-	// Reference to role id configured in the App Role authentication backend when setting
+	// RoleID configured in the App Role authentication backend when setting
 	// up the authentication backend in Vault.
-	RoleRef smmeta.SecretKeySelector `json:"roleRef"`
+	RoleID string `json:"roleId"`
 
 	// Reference to a key in a Secret that contains the App Role secret used
 	// to authenticate with Vault.
@@ -90,13 +94,10 @@ type VaultAppRole struct {
 // Authenticate against Vault using a Kubernetes ServiceAccount token stored in
 // a Secret.
 type VaultKubernetesAuth struct {
-	// The Vault mountPath here is the mount path to use when authenticating with
-	// Vault. For example, setting a value to `/v1/auth/foo`, will use the path
-	// `/v1/auth/foo/login` to authenticate with Vault. If unspecified, the
-	// default value "/v1/auth/kubernetes" will be used.
+	// Path where the Kubernetes authentication backend is mounted in Vault, e.g:
+	// "kubernetes"
 	// +kubebuilder:default=kubernetes
-	// +optional
-	Path string `json:"mountPath,omitempty"`
+	Path string `json:"mountPath"`
 
 	// The required Secret field containing a Kubernetes ServiceAccount JWT used
 	// for authenticating with Vault. Use of 'ambient credentials' is not

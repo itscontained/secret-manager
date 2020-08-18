@@ -31,7 +31,7 @@ lint/install:
 	fi
 
 # Run tests
-test: generate fmt vet manifests
+test:
 	go test ./... -coverprofile cover.out
 
 # Build manager binary
