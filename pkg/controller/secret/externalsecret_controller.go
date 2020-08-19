@@ -20,11 +20,13 @@ import (
 	"github.com/go-logr/logr"
 
 	smv1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	vault "github.com/mcavoyk/secret-manager/pkg/internal/vault"
 
 	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/client-go/tools/record"
 
@@ -57,9 +59,49 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	// TODO: move getStore to function
+	var store smv1alpha1.GenericStore
+	if extSecret.Kind == smv1alpha1.ClusterSecretStoreKind {
+		clusterStore := &smv1alpha1.ClusterSecretStore{}
+		ref := types.NamespacedName{
+			Name: extSecret.Spec.ManagerRef.Name,
+		}
+		if err := r.Get(ctx, ref, clusterStore); err != nil {
+			log.Error(err, "unable to fetch ClusterSecretStore")
+			return ctrl.Result{}, err
+		}
+		store = clusterStore
+	} else {
+		namespacedStore := &smv1alpha1.SecretStore{}
+		ref := types.NamespacedName{
+			Namespace: extSecret.Namespace,
+			Name:      extSecret.Spec.ManagerRef.Name,
+		}
+		if err := r.Get(ctx, ref, namespacedStore); err != nil {
+			log.Error(err, "unable to fetch SecretStore")
+			return ctrl.Result{}, err
+		}
+		store = namespacedStore
+	}
+
+	storeSpec := store.GetSpec()
+
+	if storeSpec.Vault != nil {
+		vaultClient, err := vault.New(ctx, r.Client, store, req.Namespace)
+		if err != nil {
+			log.Error(err, "unable to setup Vault client")
+			return ctrl.Result{}, err
+		}
+		_ = vaultClient
+		// TODO: create GetSecret interface
+		// pass vaultClient and extSecret to function which returns map[string]string to embed in computed secret
+		//vaultClient.GetSecret(ctx, path string, key string, version string)
+	}
+
 	secret := &corev1.Secret{}
-	err := r.Get(ctx, req.NamespacedName, secret)
-	_ = err
+	_, _ = ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
+		return nil
+	})
 
 	return ctrl.Result{}, nil
 }

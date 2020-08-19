@@ -12,7 +12,11 @@ import (
 
 	smv1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
-	corelisters "k8s.io/client-go/listers/core/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	"k8s.io/apimachinery/pkg/types"
+
+	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Interface interface {
@@ -21,24 +25,24 @@ type Interface interface {
 
 type Client interface {
 	NewRequest(method, requestPath string) *vault.Request
-	RawRequest(r *vault.Request) (*vault.Response, error)
+	RawRequestWithContext(ctx context.Context, r *vault.Request) (*vault.Response, error)
 	SetToken(v string)
 	Token() string
 }
 
 type Vault struct {
-	secretsLister corelisters.SecretLister
-	store         smv1alpha1.GenericStore
-	namespace     string
+	kubeClient ctrlclient.Client
+	store      smv1alpha1.GenericStore
+	namespace  string
 
 	client Client
 }
 
-func New(namespace string, secretsLister corelisters.SecretLister, store smv1alpha1.GenericStore) (Interface, error) {
+func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (Interface, error) {
 	v := &Vault{
-		secretsLister: secretsLister,
-		namespace:     namespace,
-		store:         store,
+		kubeClient: kubeclient,
+		namespace:  namespace,
+		store:      store,
 	}
 
 	cfg, err := v.newConfig()
@@ -51,7 +55,7 @@ func New(namespace string, secretsLister corelisters.SecretLister, store smv1alp
 		return nil, fmt.Errorf("error initializing Vault client: %s", err.Error())
 	}
 
-	if err := v.setToken(client); err != nil {
+	if err := v.setToken(ctx, client); err != nil {
 		return nil, err
 	}
 
@@ -85,10 +89,10 @@ func (v *Vault) newConfig() (*vault.Config, error) {
 	return cfg, nil
 }
 
-func (v *Vault) setToken(client Client) error {
+func (v *Vault) setToken(ctx context.Context, client Client) error {
 	tokenRef := v.store.GetSpec().Vault.Auth.TokenSecretRef
 	if tokenRef != nil {
-		token, err := v.secretKeyRef(v.namespace, tokenRef.Name, tokenRef.Key)
+		token, err := v.secretKeyRef(ctx, v.namespace, tokenRef.Name, tokenRef.Key)
 		if err != nil {
 			return err
 		}
@@ -99,7 +103,7 @@ func (v *Vault) setToken(client Client) error {
 
 	appRole := v.store.GetSpec().Vault.Auth.AppRole
 	if appRole != nil {
-		token, err := v.requestTokenWithAppRoleRef(client, appRole)
+		token, err := v.requestTokenWithAppRoleRef(ctx, client, appRole)
 		if err != nil {
 			return err
 		}
@@ -110,7 +114,7 @@ func (v *Vault) setToken(client Client) error {
 
 	kubernetesAuth := v.store.GetSpec().Vault.Auth.Kubernetes
 	if kubernetesAuth != nil {
-		token, err := v.requestTokenWithKubernetesAuth(client, kubernetesAuth)
+		token, err := v.requestTokenWithKubernetesAuth(ctx, client, kubernetesAuth)
 		if err != nil {
 			return fmt.Errorf("error reading Kubernetes service account token from %s: %s", kubernetesAuth.SecretRef.Name, err.Error())
 		}
@@ -121,8 +125,13 @@ func (v *Vault) setToken(client Client) error {
 	return fmt.Errorf("error initializing Vault client: tokenSecretRef, appRoleSecretRef, or Kubernetes auth role not set")
 }
 
-func (v *Vault) secretKeyRef(namespace, name, key string) (string, error) {
-	secret, err := v.secretsLister.Secrets(namespace).Get(name)
+func (v *Vault) secretKeyRef(ctx context.Context, namespace, name, key string) (string, error) {
+	secret := &corev1.Secret{}
+	ref := types.NamespacedName{
+		Namespace: namespace,
+		Name:      name,
+	}
+	err := v.kubeClient.Get(ctx, ref, secret)
 	if err != nil {
 		return "", err
 	}
@@ -138,10 +147,10 @@ func (v *Vault) secretKeyRef(namespace, name, key string) (string, error) {
 	return valueStr, nil
 }
 
-func (v *Vault) requestTokenWithAppRoleRef(client Client, appRole *smv1alpha1.VaultAppRole) (string, error) {
+func (v *Vault) requestTokenWithAppRoleRef(ctx context.Context, client Client, appRole *smv1alpha1.VaultAppRole) (string, error) {
 	roleID := strings.TrimSpace(appRole.RoleID)
 
-	secretID, err := v.secretKeyRef(v.namespace, appRole.SecretRef.Name, appRole.SecretRef.Key)
+	secretID, err := v.secretKeyRef(ctx, v.namespace, appRole.SecretRef.Name, appRole.SecretRef.Key)
 	if err != nil {
 		return "", err
 	}
@@ -164,7 +173,7 @@ func (v *Vault) requestTokenWithAppRoleRef(client Client, appRole *smv1alpha1.Va
 		return "", fmt.Errorf("error encoding Vault parameters: %s", err.Error())
 	}
 
-	resp, err := client.RawRequest(request)
+	resp, err := client.RawRequestWithContext(ctx, request)
 	if err != nil {
 		return "", fmt.Errorf("error logging in to Vault server: %s", err.Error())
 	}
@@ -188,19 +197,12 @@ func (v *Vault) requestTokenWithAppRoleRef(client Client, appRole *smv1alpha1.Va
 	return token, nil
 }
 
-func (v *Vault) requestTokenWithKubernetesAuth(client Client, kubernetesAuth *smv1alpha1.VaultKubernetesAuth) (string, error) {
-	secret, err := v.secretsLister.Secrets(v.namespace).Get(kubernetesAuth.SecretRef.Name)
+func (v *Vault) requestTokenWithKubernetesAuth(ctx context.Context, client Client, kubernetesAuth *smv1alpha1.VaultKubernetesAuth) (string, error) {
+	key := kubernetesAuth.SecretRef.Key
+	jwt, err := v.secretKeyRef(ctx, v.namespace, kubernetesAuth.SecretRef.Name, key)
 	if err != nil {
 		return "", err
 	}
-
-	key := kubernetesAuth.SecretRef.Key
-	keyBytes, ok := secret.Data[key]
-	if !ok {
-		return "", fmt.Errorf("no data for %q in secret '%s/%s'", key, v.namespace, kubernetesAuth.SecretRef.Name)
-	}
-
-	jwt := string(keyBytes)
 
 	parameters := map[string]string{
 		"role": kubernetesAuth.Role,
@@ -220,7 +222,7 @@ func (v *Vault) requestTokenWithKubernetesAuth(client Client, kubernetesAuth *sm
 		return "", fmt.Errorf("error encoding Vault parameters: %s", err.Error())
 	}
 
-	resp, err := client.RawRequest(request)
+	resp, err := client.RawRequestWithContext(ctx, request)
 	if err != nil {
 		return "", fmt.Errorf("error calling Vault server: %s", err.Error())
 	}
