@@ -20,7 +20,8 @@ import (
 )
 
 type Interface interface {
-	GetSecret(ctx context.Context, path, key, version string) (string, error)
+	GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error)
+	GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error)
 }
 
 type Client interface {
@@ -64,9 +65,14 @@ func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.Gen
 	return v, nil
 }
 
-func (v *Vault) GetSecret(ctx context.Context, path, key, version string) (string, error) {
+func (v *Vault) GetSecret(ctx context.Context,ref smv1alpha1.RemoteReference) ([]byte, error) {
 	// TODO: implement
-	return "", nil
+	return nil, nil
+}
+
+func (v *Vault) GetSecretMap(ctx context.Context,ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
+	// TODO: implement
+	return nil, nil
 }
 
 func (v *Vault) newConfig() (*vault.Config, error) {

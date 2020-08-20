@@ -23,13 +23,13 @@ import (
 // ExternalSecretSpec defines the desired state of ExternalSecret
 type ExternalSecretSpec struct {
 
-	// ManagerRef is a reference to the manager backend for this secret.
-	// If the 'kind' field is not set, or set to 'SecretManager', a SecretManager resource
-	// with the given name in the same namespace as the SecretManager will be used.
-	// If the 'kind' field is set to 'ClusterSecretManager', a ClusterSecretManager with the
+	// StoreRef is a reference to the store backend for this secret.
+	// If the 'kind' field is not set, or set to 'SecretStore', a SecretStore resource
+	// with the given name in the same namespace as the SecretStore will be used.
+	// If the 'kind' field is set to 'ClusterSecretStore', a ClusterSecretStore with the
 	// provided name will be used.
 	// The 'name' field in this stanza is required at all times.
-	ManagerRef ObjectReference `json:"managerRef"`
+	StoreRef ObjectReference `json:"storeRef"`
 
 	// The amount of time before the secret-manager will renew the values of
 	// of the ExternalSecret. If not set the secret will only be synced on
@@ -45,6 +45,10 @@ type ExternalSecretSpec struct {
 
 	// Data is a list of references to secrets values
 	Data []KeyReference `json:"data"`
+
+	// DataFrom refernces a map of secrets to embed within the generated secret.
+	// +optional
+	DataFrom *RemoteReference `json:"dataFrom"`
 }
 
 // JSON represents any valid JSON value.
@@ -70,7 +74,7 @@ type ObjectReference struct {
 
 type KeyReference struct {
 	// The key in the generated secret to place fetched value into. If not specified
-	// and the SecretManager value has multiple keys, all keys will be placed into secret with
+	// and the SecretStore value has multiple keys, all keys will be placed into secret with
 	// the key name from the source. If omitted and only a single value is present in SecretManager
 	// value, the data will be placed under the 'secret' key in the generated secret.
 	SecretKey *string `json:"secretKey,omitempty"`
@@ -83,11 +87,11 @@ type RemoteReference struct {
 	// Path to the key in the SecretManager
 	Path string `json:"path"`
 
-	// Key to extract secret value at path in SecretManager if path specifies multiple
+	// Property to extract secret value at path in SecretManager if path specifies multiple
 	// secret values. Can be omitted if not supported by SecretManager or if entire secret should
 	// be fetched.
 	// +optional
-	Key *string `json:"key,omitempty"`
+	Property *string `json:"property,omitempty"`
 
 	// Version of the secret to fetch from the SecretManager.
 	// +optional

@@ -64,7 +64,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	if extSecret.Kind == smv1alpha1.ClusterSecretStoreKind {
 		clusterStore := &smv1alpha1.ClusterSecretStore{}
 		ref := types.NamespacedName{
-			Name: extSecret.Spec.ManagerRef.Name,
+			Name: extSecret.Spec.StoreRef.Name,
 		}
 		if err := r.Get(ctx, ref, clusterStore); err != nil {
 			log.Error(err, "unable to fetch ClusterSecretStore")
@@ -75,7 +75,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		namespacedStore := &smv1alpha1.SecretStore{}
 		ref := types.NamespacedName{
 			Namespace: extSecret.Namespace,
-			Name:      extSecret.Spec.ManagerRef.Name,
+			Name:      extSecret.Spec.StoreRef.Name,
 		}
 		if err := r.Get(ctx, ref, namespacedStore); err != nil {
 			log.Error(err, "unable to fetch SecretStore")
@@ -85,6 +85,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	storeSpec := store.GetSpec()
+	var storeClient smv1alpha1.StoreClient
 
 	if storeSpec.Vault != nil {
 		vaultClient, err := vault.New(ctx, r.Client, store, req.Namespace)
@@ -92,13 +93,38 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			log.Error(err, "unable to setup Vault client")
 			return ctrl.Result{}, err
 		}
-		_ = vaultClient
-		// TODO: create GetSecret interface
-		// pass vaultClient and extSecret to function which returns map[string]string to embed in computed secret
-		//vaultClient.GetSecret(ctx, path string, key string, version string)
+		storeClient = vaultClient
 	}
 
-	secret := &corev1.Secret{}
+	controllerRef := true
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: extSecret.Name,
+			Namespace: extSecret.Namespace,
+			Labels: extSecret.Labels,
+			Annotations: extSecret.Annotations,
+			OwnerReferences: []metav1.OwnerReference{
+				metav1.OwnerReference{
+					APIVersion: extSecret.APIVersion,
+					Kind: extSecret.Kind,
+					Name: extSecret.Name,
+					UID: extSecret.UID,
+					Controller: &controllerRef,
+				},
+			},
+		},
+		Data: map[string][]byte{},
+	}
+
+	for _, secretRef := range extSecret.Spec.Data {
+		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
+		if err != nil {
+			log.Error(err, "failed to fetch secret", "path", secretRef.RemoteRef.Path)
+			return ctrl.Result{}, err
+		}
+		_ = secretData
+	}
+
 	_, _ = ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
 		return nil
 	})
