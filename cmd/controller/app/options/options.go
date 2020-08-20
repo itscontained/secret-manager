@@ -53,7 +53,7 @@ type ControllerOptions struct {
 }
 
 var (
-	defaultEnabledControllers = []string{}
+	defaultEnabledControllers = make([]string, 0)
 )
 
 func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {

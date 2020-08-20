@@ -10,7 +10,7 @@ import (
 
 	vault "github.com/hashicorp/vault/api"
 
-	smv1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -65,12 +65,12 @@ func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.Gen
 	return v, nil
 }
 
-func (v *Vault) GetSecret(ctx context.Context,ref smv1alpha1.RemoteReference) ([]byte, error) {
+func (v *Vault) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
 	// TODO: implement
 	return nil, nil
 }
 
-func (v *Vault) GetSecretMap(ctx context.Context,ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
+func (v *Vault) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
 	// TODO: implement
 	return nil, nil
 }

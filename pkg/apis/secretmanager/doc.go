@@ -12,10 +12,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +groupName=secret-manager.io
-// +groupGoName=Secretmanager
+// +groupName=secret-manager.itscontained.io
+// +groupGoName=SecretManager
 
-// Package certmanager is the internal version of the API.
+// Package secretmanager is the internal version of the API.
 package secretmanager
 
-const GroupName = "secret-manager.io"
+const GroupName = "secret-manager.itscontained.io"

@@ -17,7 +17,7 @@ package v1alpha1
 import (
 	"reflect"
 
-	"github.com/mcavoyk/secret-manager/pkg/apis/secretmanager"
+	"github.com/itscontained/secret-manager/pkg/apis/secretmanager"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 

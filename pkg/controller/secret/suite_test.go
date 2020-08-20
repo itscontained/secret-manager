@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	secretsmanageriov1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	secretmanagerv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -61,7 +61,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = secretsmanageriov1alpha1.AddToScheme(scheme.Scheme)
+	err = secretmanagerv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})

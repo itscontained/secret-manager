@@ -14,7 +14,7 @@ limitations under the License.
 package v1
 
 import (
-	smmeta "github.com/mcavoyk/secret-manager/pkg/apis/meta"
+	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 

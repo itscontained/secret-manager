@@ -13,6 +13,6 @@ limitations under the License.
 */
 
 //
-// +domain=secret-manager.io
+// +domain=secret-manager.itscontained.io
 
 package apis

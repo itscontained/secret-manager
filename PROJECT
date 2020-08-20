@@ -1,7 +1,7 @@
 domain: ""
-repo: github.com/mcavoyk/secret-manager
+repo: github.com/itscontained/secret-manager
 resources:
-- group: "secret-manager.io"
+- group: "secret-manager.itscontained.io"
   kind: ExternalSecret
   version: v1alpha1
 version: "2"
