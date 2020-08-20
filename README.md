@@ -1,16 +1,23 @@
 # Secret Manager
-
-Secret Manager is a set of Kubernetes CRD's and controllers which define a common method of interacting with External SecretStores. Hashicorp's Vault is supported as a SecretStore
-with future support planned for AWS SecretManager and GCP Secret Manager.
+Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External 
+SecretStores
+---
+## SecretStore Backends
+### Supported
+* Hashicorp Vault
+### Planned
+* AWS SecretManager
+* GCP Secret Manager
 
 ## Inspiration
-This was based on the amazing work done by the godaddy team on [godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets). This is meant to reach feature parity and then improve upon that project.
+The end goal, based on the amazing work done by the contributors over at 
+[godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets) and 
+[jetstack/cert-manager](https://github.com/jetstack/cert-manager). This is meant to reach feature parity and then 
+improve upon kes using elements from both.
 
-## Basic Example
-
-Secret Manager takes inspiration from Jetstack's Cert-Manager, there is a seperation of the defined SecretStore (or ClusterSecretStore) and the ExternalSecret. To use an ExternalSecret first define a
-SecretStore for use.
-
+## Examples
+### Basic Example
+To use an ExternalSecret first define a SecretStore for use.
 ```yaml
 apiVerson: secret-manager.io/v1alpha1
 kind: SecretStore
@@ -29,12 +36,12 @@ spec:
           name: vault-secret
 ```
 
-The SecretStore defines how ExternalSecrets for the Store should interact with the backend and the permission boundry the ExternalSecrets have within the namespace or cluster.
+The SecretStore defines how ExternalSecrets for the Store should interact with the backend, and the permission boundary,
+that the ExternalSecrets have within the namespace or cluster.
 
 Once a SecretStore is defined an ExternalSecret can be created which references the Store.
 
 In this example, the Vault KV Secrets Engine has a secret at `teamA/hello-service`
-
 ```json
 {
   "data": {
@@ -46,7 +53,6 @@ In this example, the Vault KV Secrets Engine has a secret at `teamA/hello-servic
 ```
 
 The ExternalSecret referencing this secret would look like:
-
 ```yaml
 apiVerson: secret-manager.io/v1alpha1
 kind: ExternalSecret
@@ -63,8 +69,7 @@ spec:
       property: frontend
 ```
 
-And the generated secret would be:
-
+Generates:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -73,17 +78,13 @@ metadata:
   namespace: example-ns
 type: Opaque
 data:
-  password: "Zm9vLTEyMw=="
-# password: "foo-123"
+  # base64 decoded: foo-123
+  password: Zm9vLTEyMw==
 ```
 
-
-## Advanced Examples
-
-### Renewing Secrets
-
-The ExternalSecret can also optionally define the period after which the secret should be renewed. The ExternalSecret will be refreshed when this period of time passes.
-
+### Advanced Examples
+#### Renewing Secrets
+The ExternalSecret can also optionally define the secret polling time. The ExternalSecret is refreshed when this period passes.
 ```yaml
 apiVerson: secret-manager.io/v1alpha1
 kind: ExternalSecret
@@ -101,12 +102,13 @@ spec:
       property: frontend
 ```
 
-### Templating Secrets
-
-The ExternalSecret can optionally define the format of the created Kubernetes secrets. The `template` specification field is deeply merged with the generated ExternalSecret and ran through a go templating parser. This can allow secrets with `type` other than `Opaque`, custom labels/annotations, or a secret data field configured differently than what is availabe in the ExternalSecret Store.
+#### Templating Secrets
+The ExternalSecret can optionally define the format of the created Kubernetes secrets. The `template` specification
+field deeply merges with the generated ExternalSecret and ran through a go templating parser. This can allow secrets
+with `type` other than `Opaque`, custom labels/annotations, or a secret data field configured differently than what is
+available in the ExternalSecret Store.
 
 An example imagePullSecret with an ExternalSecret:
-
 ```yaml
 apiVerson: secret-manager.io/v1alpha1
 kind: ExternalSecret
@@ -129,7 +131,6 @@ spec:
 ```
 
 Generates:
-
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -140,9 +141,8 @@ metadata:
     example: annotation-value
 type: kubernetes.io/dockerconfigjson
 data:
-  .dockerconfigjson: "eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19"
-# .dockerconfigjson: {"auths":{"registry.example.com":{"username":"foo","password":"bar","email":"foo@example.com"}}}
-
+  # base64 decoded: {"auths":{"registry.example.com":{"username":"foo","password":"bar","email":"foo@example.com"}}}
+  .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
 ```
 
 An example secret with a templated configuration:
@@ -215,9 +215,9 @@ metadata:
   namespace: example-ns
 type: Opaque
 data:
-  frontend: "ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ=="
-  backend: "YmFyLTQ1Ng=="
-  frontend-images: "eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19"
+  frontend: ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ==
+  backend: YmFyLTQ1Ng==
+  frontend-images: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
 # "frontend": "foo-123",
 # "backend": "bar-456",
 # "frontend-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
