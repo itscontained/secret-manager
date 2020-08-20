@@ -3,6 +3,8 @@
 Secret Manager is a set of Kubernetes CRD's and controllers which define a common method of interacting with External SecretStores. Hashicorp's Vault is supported as a SecretStore
 with future support planned for AWS SecretManager and GCP Secret Manager.
 
+## Inspiration
+This was based on the amazing work done by the godaddy team on [godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets). This is meant to reach feature parity and then improve upon that project.
 
 ## Basic Example
 
