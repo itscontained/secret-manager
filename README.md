@@ -1,7 +1,7 @@
 # Secret Manager
 Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External 
 SecretStores
----
+
 ## SecretStore Backends
 ### Supported
 * Hashicorp Vault
