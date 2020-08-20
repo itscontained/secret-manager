@@ -114,12 +114,12 @@ to renew certificates at an appropriate time before expiry.`,
 			}
 
 			log.Infof("Starting secret manager controller: version (%s) (%s)", util.AppVersion, util.AppGitCommit)
-			ctrl, err := NewController(opts)
+			controller, err := NewController(opts)
 			if err != nil {
 				log.Fatalf("Failed to start secret manager controller: %v", err.Error())
 			}
-
-			return ctrl.Run(stopCh)
+			// TODO: 'controller' may have 'nil' or other unexpected value as its corresponding error variable may be not 'nil'
+			return controller.Run(stopCh)
 		},
 	}
 
