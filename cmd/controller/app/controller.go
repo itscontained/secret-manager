@@ -17,17 +17,17 @@ package app
 import (
 	"fmt"
 
-	"github.com/mcavoyk/secret-manager/cmd/controller/app/options"
-	smv1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	sctrl "github.com/mcavoyk/secret-manager/pkg/controller/secret"
-	"github.com/mcavoyk/secret-manager/pkg/util"
+	"github.com/itscontained/secret-manager/cmd/controller/app/options"
+	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	sctrl "github.com/itscontained/secret-manager/pkg/controller/secret"
+	"github.com/itscontained/secret-manager/pkg/util"
 
 	"github.com/spf13/cobra"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	// kubernetes import to suppport cloud provider auth
+	// kubernetes import to support cloud provider auth
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/clientcmd"
 

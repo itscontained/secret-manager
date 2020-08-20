@@ -17,7 +17,7 @@ package main
 import (
 	"flag"
 
-	appctrl "github.com/mcavoyk/secret-manager/cmd/controller/app"
+	appctrl "github.com/itscontained/secret-manager/cmd/controller/app"
 
 	log "k8s.io/klog/v2"
 

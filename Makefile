@@ -1,6 +1,6 @@
 
 # Image URL to use all building/pushing image targets
-IMG ?= mcavoyk/secret-manager
+IMG ?= itscontained/secret-manager
 CRD_OPTIONS ?= "crd:crdVersions=v1beta1;v1,preserveUnknownFields=false"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)

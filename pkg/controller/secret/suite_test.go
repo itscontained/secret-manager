@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	secretsmanageriov1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	secretsmanageriov1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

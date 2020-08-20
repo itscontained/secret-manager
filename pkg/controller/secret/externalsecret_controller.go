@@ -19,8 +19,8 @@ import (
 
 	"github.com/go-logr/logr"
 
-	smv1alpha1 "github.com/mcavoyk/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	vault "github.com/mcavoyk/secret-manager/pkg/internal/vault"
+	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	vault "github.com/itscontained/secret-manager/pkg/internal/vault"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -99,16 +99,16 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	controllerRef := true
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: extSecret.Name,
-			Namespace: extSecret.Namespace,
-			Labels: extSecret.Labels,
+			Name:        extSecret.Name,
+			Namespace:   extSecret.Namespace,
+			Labels:      extSecret.Labels,
 			Annotations: extSecret.Annotations,
 			OwnerReferences: []metav1.OwnerReference{
 				metav1.OwnerReference{
 					APIVersion: extSecret.APIVersion,
-					Kind: extSecret.Kind,
-					Name: extSecret.Name,
-					UID: extSecret.UID,
+					Kind:       extSecret.Kind,
+					Name:       extSecret.Name,
+					UID:        extSecret.UID,
 					Controller: &controllerRef,
 				},
 			},

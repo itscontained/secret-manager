@@ -1,4 +1,4 @@
-module github.com/mcavoyk/secret-manager
+module github.com/itscontained/secret-manager
 
 go 1.14
 

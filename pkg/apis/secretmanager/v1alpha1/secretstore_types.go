@@ -15,7 +15,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	smmeta "github.com/mcavoyk/secret-manager/pkg/apis/meta/v1"
+	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
