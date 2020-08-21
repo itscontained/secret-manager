@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	"context"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -81,7 +82,6 @@ func (c *SecretStore) SetStatus(status SecretStoreStatus) {
 func (c *SecretStore) Copy() GenericStore {
 	return c.DeepCopy()
 }
-
 
 // +kubebuilder:object:root=false
 // +kubebuilder:object:generate:false

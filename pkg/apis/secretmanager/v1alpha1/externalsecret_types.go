@@ -31,7 +31,7 @@ type ExternalSecretSpec struct {
 	// The 'name' field in this stanza is required at all times.
 	StoreRef ObjectReference `json:"storeRef"`
 
-	// The amount of time before the secret-manager will renew the values of
+	// The amount of time before the SecretStore will renew the values of
 	// of the ExternalSecret. If not set the secret will only be synced on
 	// creation of the ExternalSecret.
 	// +kubebuilder:validation:Format=duration
@@ -44,11 +44,12 @@ type ExternalSecretSpec struct {
 	Template *JSON `json:"template,omitempty"`
 
 	// Data is a list of references to secrets values
-	Data []KeyReference `json:"data"`
-
-	// DataFrom refernces a map of secrets to embed within the generated secret.
 	// +optional
-	DataFrom *RemoteReference `json:"dataFrom"`
+	Data []KeyReference `json:"data,omitempty"`
+
+	// DataFrom references a map of secrets to embed within the generated secret.
+	// +optional
+	DataFrom *RemoteReference `json:"dataFrom,omitempty"`
 }
 
 // JSON represents any valid JSON value.
@@ -73,27 +74,25 @@ type ObjectReference struct {
 }
 
 type KeyReference struct {
-	// The key in the generated secret to place fetched value into. If not specified
-	// and the SecretStore value has multiple keys, all keys will be placed into secret with
-	// the key name from the source. If omitted and only a single value is present in SecretManager
-	// value, the data will be placed under the 'secret' key in the generated secret.
-	SecretKey *string `json:"secretKey,omitempty"`
+	// The key in the generated secret to place fetched secret value into.
+	SecretKey string `json:"secretKey"`
 
-	// RemoteRef describes the path and other parameters to access the secret for the specific SecretManager
+	// RemoteRef describes the path and other parameters to access the secret for the specific SecretStore
 	RemoteRef RemoteReference `json:"remoteRef"`
 }
 
 type RemoteReference struct {
-	// Path to the key in the SecretManager
+	// Path to the key in the SecretStore
 	Path string `json:"path"`
 
-	// Property to extract secret value at path in SecretManager if path specifies multiple
-	// secret values. Can be omitted if not supported by SecretManager or if entire secret should
-	// be fetched.
+	// Property to extract secret value at path in the SecretStore.
+	// Can be omitted if not supported by SecretStore or if entire secret should
+	// be fetched as in dataFrom reference.
 	// +optional
 	Property *string `json:"property,omitempty"`
 
-	// Version of the secret to fetch from the SecretManager.
+	// Version of the secret to fetch from the SecretStore. Must be a supported paramater
+	// by the referenced SecretStore.
 	// +optional
 	Version *string `json:"version,omitempty"`
 }

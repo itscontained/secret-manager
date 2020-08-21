@@ -4,7 +4,7 @@ import "time"
 
 const (
 	DefaultRenewalLeeway = time.Second * 30
-	DefaultSecretKey = "secret"
+	DefaultSecretKey     = "secret"
 
 	DefaultVaultAppRoleAuthMountPath    = "approle"
 	DefaultVaultKubernetesAuthMountPath = "kubernetes"

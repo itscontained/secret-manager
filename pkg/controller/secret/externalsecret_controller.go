@@ -16,6 +16,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/go-logr/logr"
 
@@ -34,6 +35,7 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -59,80 +61,98 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// TODO: move getStore to function
-	var store smv1alpha1.GenericStore
-	if extSecret.Kind == smv1alpha1.ClusterSecretStoreKind {
-		clusterStore := &smv1alpha1.ClusterSecretStore{}
-		ref := types.NamespacedName{
-			Name: extSecret.Spec.StoreRef.Name,
-		}
-		if err := r.Get(ctx, ref, clusterStore); err != nil {
-			log.Error(err, "unable to fetch ClusterSecretStore")
-			return ctrl.Result{}, err
-		}
-		store = clusterStore
-	} else {
-		namespacedStore := &smv1alpha1.SecretStore{}
-		ref := types.NamespacedName{
-			Namespace: extSecret.Namespace,
-			Name:      extSecret.Spec.StoreRef.Name,
-		}
-		if err := r.Get(ctx, ref, namespacedStore); err != nil {
-			log.Error(err, "unable to fetch SecretStore")
-			return ctrl.Result{}, err
-		}
-		store = namespacedStore
-	}
-
-	storeSpec := store.GetSpec()
-	var storeClient smv1alpha1.StoreClient
-
-	if storeSpec.Vault != nil {
-		vaultClient, err := vault.New(ctx, r.Client, store, req.Namespace)
-		if err != nil {
-			log.Error(err, "unable to setup Vault client")
-			return ctrl.Result{}, err
-		}
-		storeClient = vaultClient
-	}
-
-	controllerRef := true
 	secret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        extSecret.Name,
-			Namespace:   extSecret.Namespace,
-			Labels:      extSecret.Labels,
-			Annotations: extSecret.Annotations,
-			OwnerReferences: []metav1.OwnerReference{
-				metav1.OwnerReference{
-					APIVersion: extSecret.APIVersion,
-					Kind:       extSecret.Kind,
-					Name:       extSecret.Name,
-					UID:        extSecret.UID,
-					Controller: &controllerRef,
-				},
-			},
+			Name:      extSecret.Name,
+			Namespace: extSecret.Namespace,
 		},
-		Data: map[string][]byte{},
 	}
 
-	for _, secretRef := range extSecret.Spec.Data {
-		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
-		if err != nil {
-			log.Error(err, "failed to fetch secret", "path", secretRef.RemoteRef.Path)
-			return ctrl.Result{}, err
+	result, err := ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
+		// TODO: move getStore to function
+		var store smv1alpha1.GenericStore
+		if extSecret.Kind == smv1alpha1.ClusterSecretStoreKind {
+			clusterStore := &smv1alpha1.ClusterSecretStore{}
+			ref := types.NamespacedName{
+				Name: extSecret.Spec.StoreRef.Name,
+			}
+			if err := r.Get(ctx, ref, clusterStore); err != nil {
+				log.Error(err, "unable to fetch ClusterSecretStore")
+				return err
+			}
+			store = clusterStore
+		} else {
+			namespacedStore := &smv1alpha1.SecretStore{}
+			ref := types.NamespacedName{
+				Namespace: extSecret.Namespace,
+				Name:      extSecret.Spec.StoreRef.Name,
+			}
+			if err := r.Get(ctx, ref, namespacedStore); err != nil {
+				log.Error(err, "unable to fetch SecretStore")
+				return err
+			}
+			store = namespacedStore
 		}
-		_ = secretData
-	}
 
-	_, _ = ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
+		storeSpec := store.GetSpec()
+		var storeClient smv1alpha1.StoreClient
+
+		if storeSpec.Vault != nil {
+			vaultClient, err := vault.New(ctx, r.Client, store, req.Namespace)
+			if err != nil {
+				log.Error(err, "unable to setup Vault client")
+				return err
+			}
+			storeClient = vaultClient
+		}
+
+		secret.ObjectMeta.Labels = extSecret.Labels
+		secret.ObjectMeta.Annotations = extSecret.Annotations
+		secret.Data = map[string][]byte{}
+		if err := controllerutil.SetControllerReference(extSecret, &secret.ObjectMeta, r.Scheme); err != nil {
+			return err
+		}
+
+		// TODO: move fetching data from secretStore to function
+		for _, secretRef := range extSecret.Spec.Data {
+			secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
+			if err != nil {
+				log.Error(err, "failed to fetch secret", "path", secretRef.RemoteRef.Path)
+				return err
+			}
+			dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
+			base64.StdEncoding.Encode(dstBytes, secretData)
+			secret.Data[secretRef.SecretKey] = dstBytes
+		}
+
+		if extSecret.Spec.DataFrom != nil {
+			secretMap, err := storeClient.GetSecretMap(ctx, *extSecret.Spec.DataFrom)
+			if err != nil {
+				log.Error(err, "failed to fetch secret", "path", extSecret.Spec.DataFrom.Path)
+				return err
+			}
+			for secretKey, secretData := range secretMap {
+				dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
+				base64.StdEncoding.Encode(dstBytes, secretData)
+				secret.Data[secretKey] = dstBytes
+			}
+		}
 		return nil
 	})
 
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	log.Info("reconciled ExternalSecret", "operation", result)
 	return ctrl.Result{}, nil
 }
 
 func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if r.Clock == nil {
+		r.Clock = clock.RealClock{}
+	}
+
 	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &corev1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {
 		secret := rawObj.(*corev1.Secret)
 		owner := metav1.GetControllerOf(secret)
