@@ -1,6 +1,6 @@
 # Secret Manager
-Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External 
-SecretStores
+Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External
+SecretStores.
 
 ## SecretStore Backends
 ### Supported
@@ -10,16 +10,16 @@ SecretStores
 * GCP Secret Manager
 
 ## Inspiration
-The end goal, based on the amazing work done by the contributors over at 
-[godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets) and 
-[jetstack/cert-manager](https://github.com/jetstack/cert-manager). This is meant to reach feature parity and then 
-improve upon kes using elements from both.
+This project is inspired by the great work done by the contributors over at
+[godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets) and
+[jetstack/cert-manager](https://github.com/jetstack/cert-manager). This project is meant to take some of the best ideas from both
+projects for managing secrets.
 
 ## Examples
 ### Basic Example
 To use an ExternalSecret first define a SecretStore for use.
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: SecretStore
 metadata:
   name: vault
@@ -36,12 +36,12 @@ spec:
           name: vault-secret
 ```
 
-The SecretStore defines how ExternalSecrets for the Store should interact with the backend, and the permission boundary,
-that the ExternalSecrets have within the namespace or cluster.
+The SecretStore defines how ExternalSecrets for the Store should interact with the backend and the permission boundary
+that the ExternalSecrets have within the namespace or cluster when accessing the SecretStore.
 
 Once a SecretStore is defined an ExternalSecret can be created which references the Store.
 
-In this example, the Vault KV Secrets Engine has a secret at `teamA/hello-service`
+In this example, the Vault KV Secrets Engine has a secret at the path `teamA/hello-service`:
 ```json
 {
   "data": {
@@ -54,7 +54,7 @@ In this example, the Vault KV Secrets Engine has a secret at `teamA/hello-servic
 
 The ExternalSecret referencing this secret would look like:
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service
@@ -69,7 +69,7 @@ spec:
       property: frontend
 ```
 
-Generates:
+This ExternalSecret generates the secret:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -86,7 +86,7 @@ data:
 #### Renewing Secrets
 The ExternalSecret can also optionally define the secret polling time. The ExternalSecret is refreshed when this period passes.
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service
@@ -104,13 +104,13 @@ spec:
 
 #### Templating Secrets
 The ExternalSecret can optionally define the format of the created Kubernetes secrets. The `template` specification
-field deeply merges with the generated ExternalSecret and ran through a go templating parser. This can allow secrets
-with `type` other than `Opaque`, custom labels/annotations, or a secret data field configured differently than what is
+field deeply merges with the generated ExternalSecret and ran through a go template parser. This can allow secrets
+with `type` other than `Opaque`, custom labels/annotations on the secret, or a secret data field configured differently than the data
 available in the ExternalSecret Store.
 
 An example imagePullSecret with an ExternalSecret:
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service-images
@@ -148,7 +148,7 @@ data:
 An example secret with a templated configuration:
 
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service-config
@@ -188,11 +188,11 @@ data:
 
 ### Embedding Secrets
 
-If the SecretStore can return a map of secrets, these secrets can be individually referenced via the `property` field as already demonstrated. If all fields are desired in the generated secret, the `dataFrom` field can be specified to fetch all ExternalSecret properties into the generated secret.
+If the SecretStore returns a map of secret values, then these secrets can be individually referenced via the `property` field as already demonstrated. If all secret fields are desired in the generated secret, the `dataFrom` field can be specified to fetch all ExternalSecret properties into the generated secret.
 
 
 ```yaml
-apiVerson: secret-manager.io/v1alpha1
+apiVerson: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service-config
@@ -206,7 +206,6 @@ spec:
 ```
 
 Generates:
-
 ```yaml
 apiVersion: v1
 kind: Secret
