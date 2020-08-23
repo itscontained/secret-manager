@@ -25,6 +25,7 @@ import (
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/store"
+	storebase "github.com/itscontained/secret-manager/pkg/internal/store/base"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -120,10 +121,10 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if r.storeFactory == nil {
-		r.storeFactory = &store.Default{}
+		r.storeFactory = &storebase.Default{}
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &corev1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {
 		secret := rawObj.(*corev1.Secret)
 		owner := metav1.GetControllerOf(secret)
 		if owner == nil {
@@ -145,7 +146,7 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient smv1alpha1.StoreClient, extSecret *smv1alpha1.ExternalSecret) (map[string][]byte, error) {
+func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient store.Client, extSecret *smv1alpha1.ExternalSecret) (map[string][]byte, error) {
 	secretDataMap := make(map[string][]byte)
 	for _, secretRef := range extSecret.Spec.Data {
 		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)

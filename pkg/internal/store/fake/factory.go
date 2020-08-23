@@ -18,12 +18,12 @@ import (
 	"context"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	fakestore "github.com/itscontained/secret-manager/pkg/internal/store"
+	"github.com/itscontained/secret-manager/pkg/internal/store"
 
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ fakestore.Factory = &Factory{}
+var _ store.Factory = &Factory{}
 
 type Factory struct {
 	NewFn          func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*Factory, error)
@@ -75,7 +75,7 @@ func (v *Factory) WithNew(f func(context.Context, client.Client, smv1alpha1.Gene
 	return v
 }
 
-func (v *Factory) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (smv1alpha1.StoreClient, error) {
+func (v *Factory) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (store.Client, error) {
 	_, err := v.NewFn(ctx, kubeClient, store, namespace)
 	if err != nil {
 		return nil, err

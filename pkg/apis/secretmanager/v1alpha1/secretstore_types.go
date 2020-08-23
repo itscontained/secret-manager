@@ -36,15 +36,20 @@ type VaultStore struct {
 	// Server is the connection address for the Vault server, e.g: "https://vault.example.com:8200".
 	Server string `json:"server"`
 
-	// Path is the mount path of the Vault KV backend's `sign` endpoint, e.g:
-	// "my_pki_mount/sign/my-role-name".
-	// +kubebuilder:default=secret
+	// Path is the mount path of the Vault KV backend endpoint, e.g:
+	// "secret". The "/data" path suffix for fetching secrets from Vault
+	// is optional and will be appended if not present in specified path.
 	Path string `json:"path"`
+
+	// Version is the Vault KV secret engine version. This can be either "v1" or
+	// "v2". Version defaults to "v2".
+	// +optional
+	Version *VaultKVStoreVersion `json:"version,omitempty"`
 
 	// Name of the vault namespace. Namespaces is a set of features within Vault Enterprise that allows Vault environments to support Secure Multi-tenancy. e.g: "ns1"
 	// More about namespaces can be found here https://www.vaultproject.io/docs/enterprise/namespaces
 	// +optional
-	Namespace string `json:"namespace,omitempty"`
+	Namespace *string `json:"namespace,omitempty"`
 
 	// PEM encoded CA bundle used to validate Vault server certificate. Only used
 	// if the Server URL is using HTTPS protocol. This parameter is ignored for
@@ -53,6 +58,13 @@ type VaultStore struct {
 	// +optional
 	CABundle []byte `json:"caBundle,omitempty"`
 }
+
+type VaultKVStoreVersion string
+
+const (
+	VaultKVStoreV1 VaultKVStoreVersion = "v1"
+	VaultKVStoreV2 VaultKVStoreVersion = "v2"
+)
 
 // Configuration used to authenticate with a Vault server.
 // Only one of `tokenSecretRef`, `appRole` or `kubernetes` may be specified.

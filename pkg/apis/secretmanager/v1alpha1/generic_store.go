@@ -15,8 +15,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -81,16 +79,4 @@ func (c *SecretStore) SetStatus(status SecretStoreStatus) {
 }
 func (c *SecretStore) Copy() GenericStore {
 	return c.DeepCopy()
-}
-
-// +kubebuilder:object:root=false
-// +kubebuilder:object:generate:false
-// +k8s:deepcopy-gen:interfaces=nil
-// +k8s:deepcopy-gen=nil
-
-// StoreClient is a common interface for interacting with SecretStore
-// backends
-type StoreClient interface {
-	GetSecret(ctx context.Context, ref RemoteReference) ([]byte, error)
-	GetSecretMap(ctx context.Context, ref RemoteReference) (map[string][]byte, error)
 }

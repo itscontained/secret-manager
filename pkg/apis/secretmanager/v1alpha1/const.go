@@ -8,4 +8,5 @@ const (
 
 	DefaultVaultAppRoleAuthMountPath    = "approle"
 	DefaultVaultKubernetesAuthMountPath = "kubernetes"
+	DefaultVaultKVEngineVersion         = VaultKVStoreV2
 )

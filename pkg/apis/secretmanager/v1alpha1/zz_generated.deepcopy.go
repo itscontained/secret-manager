@@ -437,6 +437,16 @@ func (in *VaultKubernetesAuth) DeepCopy() *VaultKubernetesAuth {
 func (in *VaultStore) DeepCopyInto(out *VaultStore) {
 	*out = *in
 	in.Auth.DeepCopyInto(&out.Auth)
+	if in.Version != nil {
+		in, out := &in.Version, &out.Version
+		*out = new(VaultKVStoreVersion)
+		**out = **in
+	}
+	if in.Namespace != nil {
+		in, out := &in.Namespace, &out.Namespace
+		*out = new(string)
+		**out = **in
+	}
 	if in.CABundle != nil {
 		in, out := &in.CABundle, &out.CABundle
 		*out = make([]byte, len(*in))
