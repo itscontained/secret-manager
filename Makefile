@@ -57,7 +57,8 @@ deploy: manifests
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) paths="./pkg/apis/..." output:crd:artifacts:config=deploy/charts/secret-manager/config/crds
+	$(CONTROLLER_GEN) "crd:crdVersions=v1" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds
+	$(CONTROLLER_GEN) "crd:crdVersions=v1beta1,preserveUnknownFields=false" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds/legacy
 
 # Generate code
 generate: controller-gen

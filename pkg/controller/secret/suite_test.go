@@ -21,6 +21,7 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	sm1valpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	fakestore "github.com/itscontained/secret-manager/pkg/internal/store/fake"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,6 +43,7 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
+var storeFactory *fakestore.Factory
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -54,7 +56,7 @@ func TestAPIs(t *testing.T) {
 var _ = BeforeSuite(func(done Done) {
 	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
 
-	By("bootstrapping test environment")
+	By("Bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{filepath.Join("..", "..", "..", "deploy", "charts", "secret-manager", "config", "crds")},
 	}
@@ -77,10 +79,12 @@ var _ = BeforeSuite(func(done Done) {
 	k8sClient = k8sManager.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
 
+	storeFactory = fakestore.New()
 	err = (&ExternalSecretReconciler{
-		Client: k8sClient,
-		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecrets"),
+		Client:       k8sClient,
+		Scheme:       k8sManager.GetScheme(),
+		Log:          ctrl.Log.WithName("controllers").WithName("ExternalSecrets"),
+		storeFactory: storeFactory,
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 
@@ -94,7 +98,7 @@ var _ = BeforeSuite(func(done Done) {
 }, 60)
 
 var _ = AfterSuite(func() {
-	By("tearing down the test environment")
+	By("Tearing down the test environment")
 	err := testEnv.Stop()
 	Expect(err).ToNot(HaveOccurred())
 })

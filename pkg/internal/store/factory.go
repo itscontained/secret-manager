@@ -10,9 +10,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type Factory func(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (smv1alpha1.StoreClient, error)
+type Factory interface {
+	New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (smv1alpha1.StoreClient, error)
+}
 
-func New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (smv1alpha1.StoreClient, error) {
+var _ Factory = &Default{}
+
+type Default struct{}
+
+func (f *Default) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (smv1alpha1.StoreClient, error) {
 	storeSpec := store.GetSpec()
 	if storeSpec.Vault != nil {
 		vaultClient, err := vault.New(ctx, kubeClient, store, namespace)

@@ -32,12 +32,7 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ Interface = &Vault{}
-
-type Interface interface {
-	GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error)
-	GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error)
-}
+var _ smv1alpha1.StoreClient = &Vault{}
 
 type Client interface {
 	NewRequest(method, requestPath string) *vault.Request
@@ -54,7 +49,7 @@ type Vault struct {
 	client Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (Interface, error) {
+func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (smv1alpha1.StoreClient, error) {
 	v := &Vault{
 		kubeClient: kubeclient,
 		namespace:  namespace,

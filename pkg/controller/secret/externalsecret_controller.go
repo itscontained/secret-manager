@@ -81,14 +81,13 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory(ctx, store, r.Client, req.Namespace)
+		storeClient, err := r.storeFactory.New(ctx, store, r.Client, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
 
 		secret.ObjectMeta.Labels = extSecret.Labels
 		secret.ObjectMeta.Annotations = extSecret.Annotations
-		secret.Data = map[string][]byte{}
 		err = controllerutil.SetControllerReference(extSecret, &secret.ObjectMeta, r.Scheme)
 		if err != nil {
 			return fmt.Errorf("failed to set ExternalSecret controller reference: %w", err)
@@ -121,7 +120,7 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	if r.storeFactory == nil {
-		r.storeFactory = store.New
+		r.storeFactory = &store.Default{}
 	}
 
 	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &corev1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {
@@ -153,9 +152,8 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient sm
 		if err != nil {
 			return nil, fmt.Errorf("path %q: %w", extSecret.Spec.DataFrom.Path, err)
 		}
-		dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
-		base64.StdEncoding.Encode(dstBytes, secretData)
-		secretDataMap[secretRef.SecretKey] = dstBytes
+		r.Log.Info("secret data", "data", secretData)
+		secretDataMap[secretRef.SecretKey] = secretData
 	}
 
 	if extSecret.Spec.DataFrom != nil {
@@ -163,13 +161,16 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient sm
 		if err != nil {
 			return nil, fmt.Errorf("path %q: %w", extSecret.Spec.DataFrom.Path, err)
 		}
-		for secretKey, secretData := range secretMap {
-			dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
-			base64.StdEncoding.Encode(dstBytes, secretData)
-			secretDataMap[secretKey] = dstBytes
-		}
+		secretDataMap = secretMap
 	}
 
+	for secretKey, secretData := range secretDataMap {
+		dstBytes := make([]byte, base64.RawStdEncoding.EncodedLen(len(secretData)))
+		base64.RawStdEncoding.Encode(dstBytes, secretData)
+		secretDataMap[secretKey] = dstBytes
+	}
+
+	r.Log.Info("getSecret secret map", "map", secretDataMap)
 	return secretDataMap, nil
 }
 
