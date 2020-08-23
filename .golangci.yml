@@ -99,3 +99,12 @@ issues:
     - path: pkg/apis
       linters:
         - gochecknoinits
+    - text: "error strings should not be capitalized"
+      linters:
+      - golint
+    - text: "G101"
+      linters:
+      - gosec
+    - path: _test\.go
+      linters:
+      - errcheck

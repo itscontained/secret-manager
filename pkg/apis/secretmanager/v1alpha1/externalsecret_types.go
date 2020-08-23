@@ -101,8 +101,7 @@ type RemoteReference struct {
 type ExternalSecretStatus struct {
 	// List of status conditions to indicate the status of ExternalSecret.
 	// Known condition types are `Ready`.
-	// +optional
-	Conditions smmeta.ConditionedStatus `json:",inline"`
+	smmeta.ConditionedStatus `json:",inline"`
 
 	// RenewalTime is the time at which the secret values will be next
 	// renewed.

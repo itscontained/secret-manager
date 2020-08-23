@@ -15,7 +15,9 @@ limitations under the License.
 package v1
 
 import (
+	"fmt"
 	"sort"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -38,8 +40,6 @@ type ConditionReason string
 const (
 	ReasonAvailable   ConditionReason = "Resource is available for use"
 	ReasonUnavailable ConditionReason = "Resource is not available for use"
-	ReasonCreating    ConditionReason = "Resource is being created"
-	ReasonDeleting    ConditionReason = "Resource is being deleted"
 )
 
 // A Condition that may apply to a resource.
@@ -73,10 +73,25 @@ func (c Condition) Equal(other Condition) bool {
 		c.Message == other.Message
 }
 
+// Matches returns true if the condition is identical to the supplied condition,
+// ignoring the LastTransitionTime and Message.
+func (c Condition) Matches(other Condition) bool {
+	return c.Type == other.Type &&
+		c.Status == other.Status &&
+		c.Reason == other.Reason
+}
+
 // WithMessage returns a condition by adding the provided message to existing
 // condition.
 func (c Condition) WithMessage(msg string) Condition {
-	c.Message = msg
+	c.Message = Capitalize(msg)
+	return c
+}
+
+// WithMessagef returns a condition by adding the provided message to existing
+// condition.
+func (c Condition) WithMessagef(msg string, a ...interface{}) Condition {
+	c.Message = fmt.Sprintf(Capitalize(msg), a...)
 	return c
 }
 
@@ -164,17 +179,6 @@ func (s *ConditionedStatus) Equal(other *ConditionedStatus) bool {
 	return true
 }
 
-// Creating returns a condition that indicates the resource is currently
-// being created.
-func Creating() Condition {
-	return Condition{
-		Type:               TypeReady,
-		Status:             corev1.ConditionFalse,
-		LastTransitionTime: metav1.Now(),
-		Reason:             ReasonCreating,
-	}
-}
-
 // Available returns a condition that indicates the resource is
 // currently observed to be available for use.
 func Available() Condition {
@@ -197,4 +201,29 @@ func Unavailable() Condition {
 		LastTransitionTime: metav1.Now(),
 		Reason:             ReasonUnavailable,
 	}
+}
+
+// String returns a pointer to the string value passed in.
+func String(v string) *string {
+	return &v
+}
+
+// StringValue returns the value of the string pointer passed in or
+// "" if the pointer is nil.
+func StringValue(v *string) string {
+	if v != nil {
+		return *v
+	}
+	return ""
+}
+
+// Capitalize uppercases the first word in the string
+func Capitalize(s string) string {
+	sep := " "
+	strSplit := strings.SplitN(s, sep, 2)
+	if len(strSplit) > 1 {
+		return strings.Join([]string{strings.Title(strSplit[0]), strSplit[1]}, sep)
+	}
+
+	return strings.Title(s)
 }
