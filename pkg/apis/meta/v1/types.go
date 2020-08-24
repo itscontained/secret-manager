@@ -35,10 +35,10 @@ const (
 )
 
 // A reference to an object in the same namespace as the referent.
-// If the referent is a cluster-scoped resource (e.g. a ClusterIssuer),
+// If the referent is a cluster-scoped resource (e.g. a ClusterSecretStore),
 // the reference instead refers to the resource with the given name in the
 // configured 'cluster resource namespace', which is set as a flag on the
-// controller component (and defaults to the namespace that cert-manager
+// controller component (and defaults to the namespace that secret-manager
 // runs in).
 type LocalObjectReference struct {
 	// Name of the resource being referred to.

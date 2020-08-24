@@ -35,9 +35,7 @@ type ControllerOptions struct {
 
 	WebhookPort int
 	HealthPort  int
-	// The host and port address, separated by a ':', that the Prometheus server
-	// should expose metrics on.
-	MetricsListenAddress string
+	MetricPort  int
 
 	// Path to TLS certificate and private key on disk.
 	// The server key and certificate must be named tls.key and tls.crt, respectively.
@@ -63,7 +61,7 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.Kubeconfig, "kubeconfig", "", ""+
 		"Paths to a kubeconfig. Only required if out-of-cluster.")
 	fs.StringVar(&s.Namespace, "namespace", "", ""+
-		"If set, this limits the scope of secret-manager to a single namespace and ClusterIssuers are disabled. "+
+		"If set, this limits the scope of secret-manager to a single namespace and ClusterSecretStores are disabled. "+
 		"If not specified, all namespaces will be watched")
 
 	fs.BoolVar(&s.LeaderElect, "leader-elect", true, ""+
@@ -88,12 +86,12 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 	fs.StringSliceVar(&s.EnabledControllers, "controllers", defaultEnabledControllers, ""+
 		"The set of controllers to enable.")
 
-	fs.StringVar(&s.MetricsListenAddress, "metrics-listen-address", "0.0.0.0:9321", ""+
-		"The host and port that the metrics endpoint should listen on.")
 	fs.IntVar(&s.WebhookPort, "webhook-port", 8443, ""+
 		"The port number to listen on for webhook connections.")
 	fs.IntVar(&s.HealthPort, "health-port", 8400, ""+
 		"The port number to listen on for health connections.")
+	fs.IntVar(&s.MetricPort, "metric-port", 9321, ""+
+		"The port number that the metrics endpoint should listen on.")
 
 	fs.StringVar(&s.TLSCertDir, "tls-cert-dir", "", ""+
 		"The path to TLS certificate and private key on disk.")

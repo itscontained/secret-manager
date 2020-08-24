@@ -1,15 +1,22 @@
+{{- if .Values.prometheus.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "secret-manager.fullname" . }}
+  name: {{ template "secret-manager.fullname" . }}
   labels:
     {{- include "secret-manager.labels" . | nindent 4 }}
+  {{- if and .Values.prometheus.enabled (not .Values.prometheus.servicemonitor.enabled) }}
+  annotations:
+    prometheus.io/path: "/metrics"
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '9321'
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: 9321
+      targetPort: 9321
       protocol: TCP
-      name: http
   selector:
     {{- include "secret-manager.selectorLabels" . | nindent 4 }}
+{{- end }}

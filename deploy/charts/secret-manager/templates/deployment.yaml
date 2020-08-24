@@ -1,13 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "secret-manager.fullname" . }}
+  name: {{ template "secret-manager.fullname" . }}
   labels:
     {{- include "secret-manager.labels" . | nindent 4 }}
 spec:
-{{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-{{- end }}
   selector:
     matchLabels:
       {{- include "secret-manager.selectorLabels" . | nindent 6 }}
@@ -33,18 +31,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+          - --health-port={{ .Values.service.port}}
           ports:
-            - name: http
-              containerPort: 80
+            - containerPort: 9321
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /health
+              port: {{ .Values.service.port}}
           readinessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /ready
+              port: {{ .Values.service.port}}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

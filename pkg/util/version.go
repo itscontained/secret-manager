@@ -30,16 +30,16 @@ type Version struct {
 
 // This variable block holds information used to build up the version string
 var (
-	AppGitState  = ""
-	AppGitCommit = ""
-	AppVersion   = "canary"
+	gitState  = ""
+	gitCommit = ""
+	version   = "canary"
 )
 
 func VersionInfo() Version {
 	return Version{
-		GitVersion:   AppVersion,
-		GitCommit:    AppGitCommit,
-		GitTreeState: AppGitState,
+		GitVersion:   version,
+		GitCommit:    gitCommit,
+		GitTreeState: gitState,
 		GoVersion:    runtime.Version(),
 		Compiler:     runtime.Compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
