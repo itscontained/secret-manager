@@ -18,7 +18,6 @@ jobs:
         with:
           repository: "itscontained/charts"
           ref: "HEAD"
-          token: "${{ secrets.GITHUB_TOKEN }}"
           path: charts
       - name: Configure Git
         run: |
@@ -44,4 +43,4 @@ jobs:
           CR_OWNER: "itscontained"
           CR_GIT_REPO: "charts"
           CR_PACKAGE_PATH: "charts/packages/"
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_TOKEN: "${{ secrets.GITHUB_PAT }}"
