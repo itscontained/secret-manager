@@ -25,7 +25,6 @@ jobs:
             auth/dockerhubci username | DOCKERHUB_USERNAME ;
             auth/dockerhubci token | DOCKERHUB_TOKEN;
             auth/github token | GITHUB_PAT;
-            echo "::set-env name=GITHUB_PAT::$GITHUB_PAT"
       - name: Checkout Chart Repo
         uses: actions/checkout@v2
         with:
