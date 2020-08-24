@@ -36,6 +36,7 @@ import (
 	"k8s.io/klog/v2/klogr"
 
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
 type Controller struct {
@@ -61,16 +62,19 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 	gracefulShutdown := time.Second * 30
 	c.manager, err = ctrl.NewManager(config, ctrl.Options{
 		Scheme:                  scheme,
-		MetricsBindAddress:      c.options.MetricsListenAddress,
+		MetricsBindAddress:      fmt.Sprintf(":%d", c.options.MetricPort),
 		Port:                    c.options.WebhookPort,
 		Namespace:               c.options.Namespace,
 		CertDir:                 c.options.TLSCertDir,
 		LeaderElection:          c.options.LeaderElect,
 		LeaderElectionNamespace: c.options.LeaderElectionNamespace,
-		LeaderElectionID:        "secrets-manager-controller",
+		LeaderElectionID:        "secret-manager-controller",
 		LeaseDuration:           &c.options.LeaderElectionLeaseDuration,
 		RenewDeadline:           &c.options.LeaderElectionRenewDeadline,
 		RetryPeriod:             &c.options.LeaderElectionRetryPeriod,
+		ReadinessEndpointName:   "/ready",
+		LivenessEndpointName:    "/health",
+		HealthProbeBindAddress:  fmt.Sprintf(":%d", c.options.HealthPort),
 		GracefulShutdownTimeout: &gracefulShutdown,
 	})
 
@@ -84,6 +88,18 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		Scheme: c.manager.GetScheme(),
 	}).SetupWithManager(c.manager); err != nil {
 		log.Errorf("Unable to create ExternalSecret controller: %v", err.Error())
+		return nil, err
+	}
+
+	err = c.manager.AddReadyzCheck("ready-ping", healthz.Ping)
+	if err != nil {
+		log.Errorf("Unable add a readiness check to controller: %v", err.Error())
+		return nil, err
+	}
+
+	err = c.manager.AddHealthzCheck("health-ping", healthz.Ping)
+	if err != nil {
+		log.Errorf("Unable add a liveness check to controller: %v", err.Error())
 		return nil, err
 	}
 
@@ -104,19 +120,17 @@ func NewControllerCmd(stopCh <-chan struct{}) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "secret-manager-controller",
-		Short: fmt.Sprintf("Automated secret controller for Kubernetes (%s) (%s)", util.AppVersion, util.AppGitCommit),
+		Short: fmt.Sprintf("Automated secret controller for Kubernetes (%s) (%s)", util.VersionInfo().GitVersion, util.VersionInfo().GitCommit),
 		Long: `
-cert-manager is a Kubernetes addon to automate the management and issuance of
-TLS certificates from various issuing sources.
-It will ensure certificates are valid and up to date periodically, and attempt
-to renew certificates at an appropriate time before expiry.`,
+secret-manager is a Kubernetes addon to automate the management and issuance of
+secret sources from various external secret systems.`,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := opts.Validate(); err != nil {
 				return fmt.Errorf("error validating options: %s", err)
 			}
 
-			log.Infof("Starting secret manager controller: version (%s) (%s)", util.AppVersion, util.AppGitCommit)
+			log.Infof("Starting secret manager controller: version (%s) (%s)", util.VersionInfo().GitVersion, util.VersionInfo().GitCommit)
 			controller, err := NewController(opts)
 			if err != nil {
 				log.Fatalf("Failed to start secret manager controller: %v", err.Error())

@@ -1,0 +1,76 @@
+{{- if .Values.rbac.create -}}
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "secret-manager.fullname" . }}-controller
+  labels:
+    {{- include "secret-manager.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["secret-manager.itscontained.io"]
+    resources: ["secretstores", "clustersecretstores", "externalsecrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["secret-manager.itscontained.io"]
+    resources: ["externalsecrets"]
+    verbs: ["update", "patch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "secret-manager.fullname" . }}-controller
+  labels:
+    {{- include "secret-manager.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "secret-manager.fullname" . }}-controller
+subjects:
+  - name: {{ template "secret-manager.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace | quote }}
+    kind: ServiceAccount
+
+---
+
+# grant secret-manager permission to manage the leaderelection configmap in the
+# leader election namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "secret-manager.fullname" . }}:leaderelection
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "secret-manager.labels" . | nindent 4 }}
+rules:
+  # Used for leader election by the controller
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["secret-manager-controller"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "secret-manager.fullname" . }}:leaderelection
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "secret-manager.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "secret-manager.fullname" . }}:leaderelection
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "secret-manager.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace | quote }}
+
+{{- end}}
