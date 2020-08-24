@@ -13,11 +13,25 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: secret-manager
+      - name: Import Secrets
+        uses: RichiCoder1/vault-action@v1.0.1
+        with:
+          url: ${{ secrets.VaultURL }}
+          method: approle
+          roleId: ${{ secrets.appRoleID }}
+          secretId: ${{ secrets.appSecretID }}
+          path: kv-v2
+          secrets: |
+            auth/dockerhubci username | DOCKERHUB_USERNAME ;
+            auth/dockerhubci token | DOCKERHUB_TOKEN;
+            auth/github token | GITHUB_PAT;
+            echo "::set-env name=GITHUB_PAT::$GITHUB_PAT"
       - name: Checkout Chart Repo
         uses: actions/checkout@v2
         with:
+          token: "${{ env.GITHUB_PAT }}"
           repository: "itscontained/charts"
-          ref: "HEAD"
+          ref: master
           path: charts
       - name: Configure Git
         run: |
@@ -36,6 +50,7 @@ jobs:
         run: |
           helm package secret-manager/deploy/charts/secret-manager/ --destination ${CR_PACKAGE_PATH} --dependency-update
           ./cr upload && ./cr index
+          CR_TOKEN=$GITHUB_PAT
           cd charts/ && git add . && git commit -m "release chart" && git push
         env:
           CR_CHARTS_REPO: "https://charts.itscontained.io"
@@ -43,4 +58,3 @@ jobs:
           CR_OWNER: "itscontained"
           CR_GIT_REPO: "charts"
           CR_PACKAGE_PATH: "charts/packages/"
-          CR_TOKEN: "${{ secrets.GITHUB_PAT }}"
