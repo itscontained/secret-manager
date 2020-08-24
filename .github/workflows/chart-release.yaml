@@ -48,8 +48,8 @@ jobs:
       - name: Release Chart
         run: |
           helm package secret-manager/deploy/charts/secret-manager/ --destination ${CR_PACKAGE_PATH} --dependency-update
+          CR_TOKEN=${GITHUB_PAT}
           ./cr upload && ./cr index
-          CR_TOKEN=$GITHUB_PAT
           cd charts/ && git add . && git commit -m "release chart" && git push
         env:
           CR_CHARTS_REPO: "https://charts.itscontained.io"
