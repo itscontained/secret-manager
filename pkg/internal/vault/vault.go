@@ -1,3 +1,17 @@
+/*
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vault
 
 import (
@@ -11,6 +25,7 @@ import (
 	vault "github.com/hashicorp/vault/api"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	"github.com/itscontained/secret-manager/pkg/internal/store"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -19,10 +34,7 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type Interface interface {
-	GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error)
-	GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error)
-}
+var _ store.Client = &Vault{}
 
 type Client interface {
 	NewRequest(method, requestPath string) *vault.Request
@@ -39,7 +51,7 @@ type Vault struct {
 	client Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (Interface, error) {
+func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
 	v := &Vault{
 		kubeClient: kubeclient,
 		namespace:  namespace,
@@ -56,6 +68,10 @@ func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.Gen
 		return nil, fmt.Errorf("error initializing Vault client: %s", err.Error())
 	}
 
+	if v.store.GetSpec().Vault.Namespace != nil {
+		client.SetNamespace(*v.store.GetSpec().Vault.Namespace)
+	}
+
 	if err := v.setToken(ctx, client); err != nil {
 		return nil, err
 	}
@@ -66,13 +82,84 @@ func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.Gen
 }
 
 func (v *Vault) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
-	// TODO: implement
-	return nil, nil
+	version := ""
+	if ref.Version != nil {
+		version = *ref.Version
+	}
+
+	data, err := v.readSecret(ctx, ref.Path, version)
+	if err != nil {
+		return nil, err
+	}
+	property := ""
+	if ref.Property != nil {
+		property = *ref.Property
+	}
+	value, exists := data[property]
+	if !exists {
+		return nil, fmt.Errorf("property %q not found in secret response", property)
+	}
+	return value, nil
 }
 
 func (v *Vault) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
-	// TODO: implement
-	return nil, nil
+	version := ""
+	if ref.Version != nil {
+		version = *ref.Version
+	}
+
+	return v.readSecret(ctx, ref.Path, version)
+}
+
+func (v *Vault) readSecret(ctx context.Context, path, version string) (map[string][]byte, error) {
+	storeSpec := v.store.GetSpec()
+	kvPath := storeSpec.Vault.Path
+	if !strings.HasSuffix(kvPath, "/data") {
+		kvPath = fmt.Sprintf("%s/data", kvPath)
+	}
+
+	req := v.client.NewRequest(http.MethodGet, fmt.Sprintf("/v1/%s/%s", kvPath, path))
+	if version != "" {
+		req.Params.Set("version", version)
+	}
+
+	resp, err := v.client.RawRequestWithContext(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	vaultSecret, err := vault.ParseSecret(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	kvVersion := smv1alpha1.DefaultVaultKVEngineVersion
+	if storeSpec.Vault.Version != nil {
+		kvVersion = *storeSpec.Vault.Version
+	}
+
+	secretData := vaultSecret.Data
+	if kvVersion == smv1alpha1.DefaultVaultKVEngineVersion {
+		dataInt, ok := vaultSecret.Data["data"]
+		if !ok {
+			return nil, fmt.Errorf("unexpected secret data response")
+		}
+		secretData, ok = dataInt.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("unexpected secret data format")
+		}
+	}
+
+	byteMap := make(map[string][]byte, len(secretData))
+	for k, v := range secretData {
+		str, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("unexpected secret type")
+		}
+		byteMap[k] = []byte(str)
+	}
+
+	return byteMap, nil
 }
 
 func (v *Vault) newConfig() (*vault.Config, error) {

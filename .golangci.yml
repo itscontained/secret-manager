@@ -28,6 +28,8 @@ linters-settings:
         sizeThreshold: 256
   gocyclo:
     min-complexity: 16
+  goheader:
+    template-path: ./build/boilerplate.go.txt
   goimports:
     local-prefixes: github.com/golangci/golangci-lint
   golint:
@@ -63,6 +65,7 @@ linters:
     - gocritic
     - gocyclo
     - gofmt
+    - goheader
     - goimports
     - golint
     - goprintffuncname
@@ -99,3 +102,15 @@ issues:
     - path: pkg/apis
       linters:
         - gochecknoinits
+    - text: "error strings should not be capitalized"
+      linters:
+      - golint
+    - text: "G101"
+      linters:
+      - gosec
+    - path: _test\.go
+      linters:
+      - errcheck
+    - text: "Actual: Licensed under the Apache License, Version 2.0"
+      linters:
+        - goheader

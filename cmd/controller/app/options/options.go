@@ -77,7 +77,7 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 		"slot. This is effectively the maximum duration that a leader can be stopped "+
 		"before it is replaced by another candidate. This is only applicable if leader "+
 		"election is enabled.")
-	fs.DurationVar(&s.LeaderElectionRenewDeadline, "leader-election-renew-deadline", 40*time.Second, ""+
+	fs.DurationVar(&s.LeaderElectionRenewDeadline, "leader-election-renew-deadline", 45*time.Second, ""+
 		"The interval between attempts by the acting master to renew a leadership slot "+
 		"before it stops leading. This must be less than or equal to the lease duration. "+
 		"This is only applicable if leader election is enabled.")
@@ -90,9 +90,9 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 
 	fs.StringVar(&s.MetricsListenAddress, "metrics-listen-address", "0.0.0.0:9321", ""+
 		"The host and port that the metrics endpoint should listen on.")
-	fs.IntVar(&s.WebhookPort, "metrics-listen-address", 8443, ""+
+	fs.IntVar(&s.WebhookPort, "webhook-port", 8443, ""+
 		"The port number to listen on for webhook connections.")
-	fs.IntVar(&s.HealthPort, "metrics-listen-address", 8400, ""+
+	fs.IntVar(&s.HealthPort, "health-port", 8400, ""+
 		"The port number to listen on for health connections.")
 
 	fs.StringVar(&s.TLSCertDir, "tls-cert-dir", "", ""+

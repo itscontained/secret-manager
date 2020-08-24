@@ -16,10 +16,11 @@ package app
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/itscontained/secret-manager/cmd/controller/app/options"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	sctrl "github.com/itscontained/secret-manager/pkg/controller/secret"
+	esctrl "github.com/itscontained/secret-manager/pkg/controller/externalsecret"
 	"github.com/itscontained/secret-manager/pkg/util"
 
 	"github.com/spf13/cobra"
@@ -57,6 +58,7 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		return nil, err
 	}
 
+	gracefulShutdown := time.Second * 30
 	c.manager, err = ctrl.NewManager(config, ctrl.Options{
 		Scheme:                  scheme,
 		MetricsBindAddress:      c.options.MetricsListenAddress,
@@ -69,13 +71,14 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		LeaseDuration:           &c.options.LeaderElectionLeaseDuration,
 		RenewDeadline:           &c.options.LeaderElectionRenewDeadline,
 		RetryPeriod:             &c.options.LeaderElectionRetryPeriod,
+		GracefulShutdownTimeout: &gracefulShutdown,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if err = (&sctrl.ExternalSecretReconciler{
+	if err = (&esctrl.ExternalSecretReconciler{
 		Client: c.manager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecret"),
 		Scheme: c.manager.GetScheme(),
@@ -118,7 +121,6 @@ to renew certificates at an appropriate time before expiry.`,
 			if err != nil {
 				log.Fatalf("Failed to start secret manager controller: %v", err.Error())
 			}
-			// TODO: 'controller' may have 'nil' or other unexpected value as its corresponding error variable may be not 'nil'
 			return controller.Run(stopCh)
 		},
 	}
