@@ -20,7 +20,7 @@ import (
 
 	"github.com/itscontained/secret-manager/cmd/controller/app/options"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	sctrl "github.com/itscontained/secret-manager/pkg/controller/secret"
+	esctrl "github.com/itscontained/secret-manager/pkg/controller/externalsecret"
 	"github.com/itscontained/secret-manager/pkg/util"
 
 	"github.com/spf13/cobra"
@@ -78,7 +78,7 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		return nil, err
 	}
 
-	if err = (&sctrl.ExternalSecretReconciler{
+	if err = (&esctrl.ExternalSecretReconciler{
 		Client: c.manager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecret"),
 		Scheme: c.manager.GetScheme(),
