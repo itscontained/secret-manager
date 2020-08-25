@@ -26,6 +26,7 @@ import (
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/store"
 	storebase "github.com/itscontained/secret-manager/pkg/internal/store/base"
+	"github.com/itscontained/secret-manager/pkg/util/merge"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -148,21 +149,20 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient store.Client, extSecret *smv1alpha1.ExternalSecret) (map[string][]byte, error) {
 	secretDataMap := make(map[string][]byte)
+	for _, remoteRef := range extSecret.Spec.DataFrom {
+		secretMap, err := storeClient.GetSecretMap(ctx, remoteRef)
+		if err != nil {
+			return nil, fmt.Errorf("path %q: %w", remoteRef.Path, err)
+		}
+		secretDataMap = merge.Merge(secretDataMap, secretMap)
+	}
+
 	for _, secretRef := range extSecret.Spec.Data {
 		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
 		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", extSecret.Spec.DataFrom.Path, err)
+			return nil, fmt.Errorf("path %q: %w", secretRef.RemoteRef.Path, err)
 		}
-		r.Log.Info("secret data", "data", secretData)
 		secretDataMap[secretRef.SecretKey] = secretData
-	}
-
-	if extSecret.Spec.DataFrom != nil {
-		secretMap, err := storeClient.GetSecretMap(ctx, *extSecret.Spec.DataFrom)
-		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", extSecret.Spec.DataFrom.Path, err)
-		}
-		secretDataMap = secretMap
 	}
 
 	for secretKey, secretData := range secretDataMap {
@@ -171,7 +171,6 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 		secretDataMap[secretKey] = dstBytes
 	}
 
-	r.Log.Info("getSecret secret map", "map", secretDataMap)
 	return secretDataMap, nil
 }
 

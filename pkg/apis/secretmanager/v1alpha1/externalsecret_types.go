@@ -43,13 +43,13 @@ type ExternalSecretSpec struct {
 	// +optional
 	Template *JSON `json:"template,omitempty"`
 
-	// Data is a list of references to secrets values
+	// Data is a list of references to secret values.
 	// +optional
 	Data []KeyReference `json:"data,omitempty"`
 
 	// DataFrom references a map of secrets to embed within the generated secret.
 	// +optional
-	DataFrom *RemoteReference `json:"dataFrom,omitempty"`
+	DataFrom []RemoteReference `json:"dataFrom,omitempty"`
 }
 
 // JSON represents any valid JSON value.

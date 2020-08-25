@@ -201,7 +201,7 @@ spec:
   storeRef:
     name: vault
   dataFrom:
-    path: teamA/hello-service
+  - path: teamA/hello-service
 ```
 
 Generates:
