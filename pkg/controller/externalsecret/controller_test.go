@@ -103,22 +103,12 @@ var _ = Describe("ExternalSecrets Controller", func() {
 		})
 
 		It("An ExternalSecret referencing a SecretStore with invalid credentials should be NotReady", func() {
-			secretStore := &smv1alpha1.SecretStore{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "vault",
-					Namespace: "default",
-				},
-				Spec: smv1alpha1.SecretStoreSpec{
-					Vault: &smv1alpha1.VaultStore{
-						Server: "http://localhost:12345",
-					},
-				},
-			}
-			Expect(k8sClient.Create(context.Background(), secretStore)).Should(Succeed())
+			store := sampleStore.DeepCopy()
+			Expect(k8sClient.Create(context.Background(), store)).Should(Succeed())
 
 			spec := smv1alpha1.ExternalSecretSpec{
 				StoreRef: smv1alpha1.ObjectReference{
-					Name: secretStore.Name,
+					Name: store.Name,
 					Kind: smv1alpha1.SecretStoreKind,
 				},
 				Data: []smv1alpha1.KeyReference{
@@ -164,26 +154,16 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			By("Deleting the ExternalSecret successfully")
 			Expect(k8sClient.Delete(context.Background(), toCreate)).Should(Succeed())
 			By("Deleting the SecretStore successfully")
-			Expect(k8sClient.Delete(context.Background(), secretStore)).Should(Succeed())
+			Expect(k8sClient.Delete(context.Background(), store)).Should(Succeed())
 		})
 
 		It("An ExternalSecret with a valid SecretStore should generate a Secret", func() {
-			secretStore := &smv1alpha1.SecretStore{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "vault",
-					Namespace: "default",
-				},
-				Spec: smv1alpha1.SecretStoreSpec{
-					Vault: &smv1alpha1.VaultStore{
-						Server: "http://localhost:12345",
-					},
-				},
-			}
-			Expect(k8sClient.Create(context.Background(), secretStore)).Should(Succeed())
+			store := sampleStore.DeepCopy()
+			Expect(k8sClient.Create(context.Background(), store)).Should(Succeed())
 
 			spec := smv1alpha1.ExternalSecretSpec{
 				StoreRef: smv1alpha1.ObjectReference{
-					Name: secretStore.Name,
+					Name: store.Name,
 					Kind: smv1alpha1.SecretStoreKind,
 				},
 				Data: []smv1alpha1.KeyReference{
@@ -211,6 +191,9 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 
 			testSecretData := []byte("this-is-a-secret")
+			expectedData := map[string][]byte{
+				"key": []byte(base64.RawStdEncoding.EncodeToString(testSecretData)),
+			}
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return storeFactory, nil
@@ -240,16 +223,108 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			Expect(fetchedSecret.OwnerReferences[0].Name).Should(BeIdenticalTo(toCreate.Name),
 				"The owner name should be the name of the ExternalSecret")
 
-			fetchedSecData := fetchedSecret.Data[toCreate.Spec.Data[0].SecretKey]
-			dstBytes := make([]byte, base64.RawStdEncoding.DecodedLen(len(fetchedSecData)))
-			_, err := base64.RawStdEncoding.Strict().Decode(dstBytes, fetchedSecData)
-			Expect(err).Should(BeNil(), "Base64 decoding the secret should succeed")
-			Expect(string(dstBytes)).Should(Equal(string(testSecretData)), "Secret data should match test data")
+			Expect(fetchedSecret.Data).Should(Equal(expectedData), "Secret data should match test data")
 
 			By("Deleting the ExternalSecret successfully")
 			Expect(k8sClient.Delete(context.Background(), toCreate)).Should(Succeed())
 			By("Deleting the SecretStore successfully")
-			Expect(k8sClient.Delete(context.Background(), secretStore)).Should(Succeed())
+			Expect(k8sClient.Delete(context.Background(), store)).Should(Succeed())
+		})
+
+		It("An ExternalSecret with dataFrom specified should generate secret", func() {
+			store := sampleStore.DeepCopy()
+			Expect(k8sClient.Create(context.Background(), store)).Should(Succeed())
+
+			spec := smv1alpha1.ExternalSecretSpec{
+				StoreRef: smv1alpha1.ObjectReference{
+					Name: store.Name,
+					Kind: smv1alpha1.SecretStoreKind,
+				},
+				Data: []smv1alpha1.KeyReference{
+					{
+						SecretKey: "key2",
+						RemoteRef: smv1alpha1.RemoteReference{
+							Path:     "secret/data/foo",
+							Property: smmeta.String("property"),
+						},
+					},
+				},
+				DataFrom: []smv1alpha1.RemoteReference{
+					{
+						Path:     "secret/data/bar",
+						Property: smmeta.String("property"),
+					},
+					{
+						Path:     "secret/data/bar",
+						Property: smmeta.String("property"),
+					},
+				},
+			}
+
+			key := types.NamespacedName{
+				Name:      secretType.Name,
+				Namespace: secretType.Namespace,
+			}
+
+			toCreate := &smv1alpha1.ExternalSecret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      key.Name,
+					Namespace: key.Namespace,
+				},
+				Spec: spec,
+			}
+
+			testSecretMap := map[string][]byte{
+				"key1": []byte("value1"),
+				"key2": []byte("value2"),
+			}
+			testSecretData := []byte("value3")
+			expectedMap := map[string][]byte{
+				"key1": []byte(base64.RawStdEncoding.EncodeToString(testSecretMap["key1"])),
+				"key2": []byte(base64.RawStdEncoding.EncodeToString(testSecretData)),
+			}
+			storeFactory.WithGetSecretMap(testSecretMap, nil)
+			storeFactory.WithGetSecret(testSecretData, nil)
+			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+				return storeFactory, nil
+			})
+
+			By("Creating the ExternalSecret successfully")
+			Expect(k8sClient.Create(context.Background(), toCreate)).Should(Succeed())
+			time.Sleep(time.Second * 5)
+
+			fetched := &smv1alpha1.ExternalSecret{}
+			Eventually(func() bool {
+				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				return fetchedCond.Matches(smmeta.Available())
+			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
+
+			fetchedSecret := &corev1.Secret{}
+			Eventually(func() bool {
+				Expect(k8sClient.Get(context.Background(), key, fetchedSecret)).Should(Succeed())
+				return true
+			}, timeout, interval).Should(BeTrue(), "The generated secret should be created")
+
+			Expect(fetchedSecret.Data).Should(Equal(expectedMap), "Secret data should match test data")
+
+			By("Deleting the ExternalSecret successfully")
+			Expect(k8sClient.Delete(context.Background(), toCreate)).Should(Succeed())
+			By("Deleting the SecretStore successfully")
+			Expect(k8sClient.Delete(context.Background(), store)).Should(Succeed())
 		})
 	})
 })
+
+// arbitrary SecretStore to use when injecting factory
+var sampleStore = &smv1alpha1.SecretStore{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "vault",
+		Namespace: "default",
+	},
+	Spec: smv1alpha1.SecretStoreSpec{
+		Vault: &smv1alpha1.VaultStore{
+			Server: "http://localhost:12345",
+		},
+	},
+}
