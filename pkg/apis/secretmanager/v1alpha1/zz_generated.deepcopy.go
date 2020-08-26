@@ -165,8 +165,10 @@ func (in *ExternalSecretSpec) DeepCopyInto(out *ExternalSecretSpec) {
 	}
 	if in.DataFrom != nil {
 		in, out := &in.DataFrom, &out.DataFrom
-		*out = new(RemoteReference)
-		(*in).DeepCopyInto(*out)
+		*out = make([]RemoteReference, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 
