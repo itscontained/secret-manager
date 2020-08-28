@@ -56,6 +56,7 @@ type ExternalSecretSpec struct {
 type JSON struct {
 	// +kubebuilder:validation:Type=object
 	// +kubebuilder:validation:Format=any
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Raw []byte `json:",inline"`
 }
 

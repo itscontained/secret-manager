@@ -6,6 +6,7 @@ require (
 	github.com/go-logr/logr v0.2.1-0.20200730175230-ee2de8da5be6
 	github.com/go-logr/zapr v0.2.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4
+	github.com/imdario/mergo v0.3.11
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/spf13/cobra v1.0.0
