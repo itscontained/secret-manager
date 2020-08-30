@@ -157,7 +157,7 @@ spec:
   storeRef:
     name: vault
   data:
-  - secretKey: config.yaml
+  - secretKey: password
     remoteRef:
       path: teamA/hello-service
       property: serviceBapiKey
@@ -166,7 +166,7 @@ spec:
       config.yaml: |
       {
         "apiUrl": "http://localhost:12345",
-        "apiKey": {{ index .data "config.yaml" | quote }}
+        "apiKey": {{ .data.password | quote }}
       }
 ```
 
@@ -180,8 +180,8 @@ metadata:
   namespace: example-ns
 type: Opaque
 data:
-  password: "ewogICJhcGlVcmwiOiAiaHR0cDovL2xvY2FsaG9zdDoxMjM0NSIsCiAgImFwaUtleSI6ICJmb28tMTIzIgp9"
-# password: |
+  config.yaml: "ewogICJhcGlVcmwiOiAiaHR0cDovL2xvY2FsaG9zdDoxMjM0NSIsCiAgImFwaUtleSI6ICJmb28tMTIzIgp9"
+# config.yaml: |
 # {
 #   "apiUrl": "http://localhost:12345"
 #   "apiKey": "foo-123"

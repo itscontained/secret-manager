@@ -40,8 +40,11 @@ type ExternalSecretSpec struct {
 
 	// Template which will be deep merged into the generated secret.
 	// Can be used to set for example annotations or type on the generated secret.
+	// +kubebuilder:validation:Type=object
+	// +kubebuilder:validation:Format=any
+	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Template *JSON `json:"template,omitempty"`
+	Template []byte `json:"template,omitempty"`
 
 	// Data is a list of references to secret values.
 	// +optional
@@ -50,14 +53,6 @@ type ExternalSecretSpec struct {
 	// DataFrom references a map of secrets to embed within the generated secret.
 	// +optional
 	DataFrom []RemoteReference `json:"dataFrom,omitempty"`
-}
-
-// JSON represents any valid JSON value.
-type JSON struct {
-	// +kubebuilder:validation:Type=object
-	// +kubebuilder:validation:Format=any
-	// +kubebuilder:pruning:PreserveUnknownFields
-	Raw []byte `json:",inline"`
 }
 
 // ObjectReference is a reference to an object with a given name, kind and group.

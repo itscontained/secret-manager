@@ -102,13 +102,12 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errGetSecretDataFailed, err)
 		}
 
-		if extSecret.Spec.Template != nil && extSecret.Spec.Template.Raw != nil {
-			err = r.templateSecret(secret, extSecret.Spec.Template.Raw)
+		if extSecret.Spec.Template != nil {
+			err = r.templateSecret(secret, extSecret.Spec.Template)
 			if err != nil {
 				return fmt.Errorf("%s: %w", errTemplateFailed, err)
 			}
 		}
-
 		return nil
 	})
 
@@ -175,8 +174,8 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	}
 
 	for secretKey, secretData := range secretDataMap {
-		dstBytes := make([]byte, base64.RawStdEncoding.EncodedLen(len(secretData)))
-		base64.RawStdEncoding.Encode(dstBytes, secretData)
+		dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
+		base64.StdEncoding.Encode(dstBytes, secretData)
 		secretDataMap[secretKey] = dstBytes
 	}
 
@@ -207,15 +206,8 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 }
 
 func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {
-	templateBytes := template
-	templateValueBytes, err := base64.RawStdEncoding.DecodeString(string(template))
-	if err == nil {
-		templateBytes = templateValueBytes
-	}
-
-	secret.Annotations = make(map[string]string)
 	templatedSecret := &corev1.Secret{}
-	if err := json.Unmarshal(templateBytes, templatedSecret); err != nil {
+	if err := json.Unmarshal(template, templatedSecret); err != nil {
 		return fmt.Errorf("error unmarshalling json: %w", err)
 	}
 
