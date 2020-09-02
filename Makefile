@@ -3,7 +3,6 @@ SHELL := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 .DEFAULT_GOAL := all
 
-IMG ?= itscontained/secret-manager
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -22,27 +21,33 @@ LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.version=${BINARY_V
 LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.gitCommit=${GIT_COMMIT}
 LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.gitState=${GIT_DIRTY}
 
+IMG_TAG ?= ${GIT_TAG}
+IMG ?= itscontained/secret-manager:${IMG_TAG}
+
+export KUBEBUILDER_ASSETS=${HOME}/kubebuilder/bin
+
 all: docker-build
 
 fmt: lint/check ## ensure consistent code style
 	go run oss.indeed.com/go/go-groups -w .
-	golangci-lint run --fix > /dev/null 2>&1 || true
+	gofmt -s -w .
+	$(GOBIN)/golangci-lint run --fix > /dev/null 2>&1 || true
 
 lint/check:
-	@if ! golangci-lint --version > /dev/null 2>&1; then \
+	@if ! $(GOBIN)/golangci-lint --version > /dev/null 2>&1; then \
 		echo -e "\033[0;33mgolangci-lint is not installed: run \`\033[0;32mmake lint-install\033[0m\033[0;33m\` or install it from https://golangci-lint.run\033[0m"; \
 		exit 1; \
 	fi
 
 lint-install: ## installs golangci-lint to the go bin dir
-	@if ! golangci-lint --version > /dev/null 2>&1; then \
+	@if ! $(GOBIN)/golangci-lint --version > /dev/null 2>&1; then \
 		echo "Installing golangci-lint"; \
 		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOBIN) v1.30.0; \
 	fi
 
 lint: lint/check ## run golangci-lint
-	golangci-lint run
-	@if [ -n "$$(go run oss.indeed.com/go/go-groups -d .)" ]; then \
+	$(GOBIN)/golangci-lint run
+	if [ -n "$$(gofmt -s -l .)" ] || [ -n "$$(go run oss.indeed.com/go/go-groups -d .)" ]; then \
 		echo -e "\033[0;33mdetected fmt problems: run \`\033[0;32mmake fmt\033[0m\033[0;33m\`\033[0m"; \
 		exit 1; \
 	fi
