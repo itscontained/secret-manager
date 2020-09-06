@@ -17,10 +17,13 @@ package controllers
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
+
+	"github.com/imdario/mergo"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
@@ -48,6 +51,7 @@ const (
 	errStoreNotFound       = "cannot get store reference"
 	errStoreSetupFailed    = "cannot setup store client"
 	errGetSecretDataFailed = "cannot get ExternalSecret data from store"
+	errTemplateFailed      = "failed to merge secret with template field"
 )
 
 // ExternalSecretReconciler reconciles a ExternalSecret object
@@ -88,8 +92,6 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
 
-		secret.ObjectMeta.Labels = extSecret.Labels
-		secret.ObjectMeta.Annotations = extSecret.Annotations
 		err = controllerutil.SetControllerReference(extSecret, &secret.ObjectMeta, r.Scheme)
 		if err != nil {
 			return fmt.Errorf("failed to set ExternalSecret controller reference: %w", err)
@@ -100,6 +102,12 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errGetSecretDataFailed, err)
 		}
 
+		if extSecret.Spec.Template != nil {
+			err = r.templateSecret(secret, extSecret.Spec.Template)
+			if err != nil {
+				return fmt.Errorf("%s: %w", errTemplateFailed, err)
+			}
+		}
 		return nil
 	})
 
@@ -166,8 +174,8 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	}
 
 	for secretKey, secretData := range secretDataMap {
-		dstBytes := make([]byte, base64.RawStdEncoding.EncodedLen(len(secretData)))
-		base64.RawStdEncoding.Encode(dstBytes, secretData)
+		dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
+		base64.StdEncoding.Encode(dstBytes, secretData)
 		secretDataMap[secretKey] = dstBytes
 	}
 
@@ -195,4 +203,13 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
 	}
 	return namespacedStore, nil
+}
+
+func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {
+	templatedSecret := &corev1.Secret{}
+	if err := json.Unmarshal(template, templatedSecret); err != nil {
+		return fmt.Errorf("error unmarshalling json: %w", err)
+	}
+
+	return mergo.Merge(secret, templatedSecret, mergo.WithOverride)
 }

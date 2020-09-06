@@ -45,9 +45,9 @@ In this example, the Vault KV Secrets Engine has a secret at the path `teamA/hel
 ```json
 {
   "data": {
-      "frontend": "foo-123",
-      "backend": "bar-456",
-      "frontend-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
+      "serviceBapiKey": "foo-123",
+      "serviceCapiKey": "bar-456",
+      "private-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
   }
 }
 ```
@@ -66,7 +66,7 @@ spec:
   - secretKey: password
     remoteRef:
       path: teamA/hello-service
-      property: frontend
+      property: serviceBapiKey
 ```
 
 This ExternalSecret generates the secret:
@@ -99,7 +99,7 @@ spec:
   - secretKey: password
     remoteRef:
       path: teamA/hello-service
-      property: frontend
+      property: serviceBapiKey
 ```
 
 #### Templating Secrets
@@ -122,7 +122,7 @@ spec:
   - secretKey: .dockerconfigjson
     remoteRef:
       path: teamA/hello-service
-      property: frontend-images
+      property: private-images
   template:
     metadata:
       annotations:
@@ -160,11 +160,13 @@ spec:
   - secretKey: password
     remoteRef:
       path: teamA/hello-service
-      property: frontend
+      property: serviceBapiKey
   template:
-    password: |
+    data:
+      config.yaml: |
       {
-        "config": {{ .Values.data.password | quote }}
+        "apiUrl": "http://localhost:12345",
+        "apiKey": {{ .data.password | quote }}
       }
 ```
 
@@ -178,10 +180,11 @@ metadata:
   namespace: example-ns
 type: Opaque
 data:
-  password: "ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ=="
-# password: |
+  config.yaml: "ewogICJhcGlVcmwiOiAiaHR0cDovL2xvY2FsaG9zdDoxMjM0NSIsCiAgImFwaUtleSI6ICJmb28tMTIzIgp9"
+# config.yaml: |
 # {
-#   "config": "foo-123"
+#   "apiUrl": "http://localhost:12345"
+#   "apiKey": "foo-123"
 # }
 ```
 
@@ -213,10 +216,10 @@ metadata:
   namespace: example-ns
 type: Opaque
 data:
-  frontend: ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ==
-  backend: YmFyLTQ1Ng==
-  frontend-images: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
-# "frontend": "foo-123",
-# "backend": "bar-456",
-# "frontend-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
+  serviceBapiKey: ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ==
+  serviceCapiKey: YmFyLTQ1Ng==
+  private-images: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
+# "serviceBapiKey": "foo-123",
+# "serviceCapiKey": "bar-456",
+# "private-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
 ```
