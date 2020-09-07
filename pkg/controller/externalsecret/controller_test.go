@@ -67,7 +67,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
 					},
@@ -116,7 +116,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
 					},
@@ -171,7 +171,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
 					},
@@ -247,18 +247,18 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key2",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
 					},
 				},
 				DataFrom: []smv1alpha1.RemoteReference{
 					{
-						Path:     "secret/data/bar",
+						Path:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
 					{
-						Path:     "secret/data/bar",
+						Path:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
 				},
@@ -344,7 +344,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
 					},
@@ -423,7 +423,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Path:     "secret/data/foo",
+							Path:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
 					},

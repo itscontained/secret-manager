@@ -160,7 +160,7 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	for _, remoteRef := range extSecret.Spec.DataFrom {
 		secretMap, err := storeClient.GetSecretMap(ctx, remoteRef)
 		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", remoteRef.Path, err)
+			return nil, fmt.Errorf("path %q: %w", *remoteRef.Path, err)
 		}
 		secretDataMap = merge.Merge(secretDataMap, secretMap)
 	}
@@ -168,7 +168,7 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	for _, secretRef := range extSecret.Spec.Data {
 		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
 		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", secretRef.RemoteRef.Path, err)
+			return nil, fmt.Errorf("path %q: %w", *secretRef.RemoteRef.Path, err)
 		}
 		secretDataMap[secretRef.SecretKey] = secretData
 	}
