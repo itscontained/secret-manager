@@ -45,7 +45,7 @@ jobs:
           tar xzvf chart-releaser_1.0.0_linux_amd64.tar.gz cr
       - name: Release Chart
         run: |
-          helm package secret-manager/deploy/charts/secret-manager/ --destination ${CR_PACKAGE_PATH} --dependency-update
+          helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
           ./cr upload -t ${GITHUB_PAT} && ./cr index
           cd charts/ && git add . && git commit -m "release chart" && git push
         env:
