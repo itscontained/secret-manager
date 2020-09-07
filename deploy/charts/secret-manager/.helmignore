@@ -21,3 +21,6 @@
 .idea/
 *.tmproj
 .vscode/
+
+# CRD README.md
+templates/crds/README.md
