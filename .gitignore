@@ -23,3 +23,6 @@ bin
 *.swp
 *.swo
 *~
+
+# generated CRDs
+deploy/charts/secret-manager/templates/crds/*.yaml

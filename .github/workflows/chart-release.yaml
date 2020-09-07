@@ -43,6 +43,12 @@ jobs:
         run: |
           wget https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz
           tar xzvf chart-releaser_1.0.0_linux_amd64.tar.gz cr
+      - name: Copy CRDs to chart
+        run: |
+          cp secret-manager/deploy/crds/*.yaml secret-manager/deploy/charts/secret-manager/templates/crds/;
+          for i in secret-manager/deploy/charts/secret-manager/templates/crds/*.yaml; do
+               sed -i '1s/.*/{{- if .Values.installCRDs }}/;$a{{- end }}' $i;
+          done
       - name: Release Chart
         run: |
           helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
