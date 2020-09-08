@@ -125,10 +125,12 @@ type VaultKubernetesAuth struct {
 // Configures an store to sync secrets using AWS SecretManager
 type AWSStore struct {
 	// Auth configures how secret-manager authenticates with AWS.
-	Auth AWSAuth `json:"auth"`
+	// +optional
+	Auth *AWSAuth `json:"auth"`
 
 	// Region configures the region to send requests to.
-	Region string `json:"region"`
+	// +optional
+	Region *string `json:"region"`
 }
 
 // Configuration used to authenticate with AWS.
@@ -136,7 +138,7 @@ type AWSStore struct {
 type AWSAuth struct {
 	// Credentials authenticates with AWS using an AccessKeyID, and SecretAccessKey
 	// +optional
-	Credentials AWSCredentials `json:"credentials,omitempty"`
+	Credentials *AWSCredentials `json:"credentials,omitempty"`
 	// TokenSecretRef authenticates with Vault by presenting a token.
 	// +optional
 	TokenSecretRef *smmeta.SecretKeySelector `json:"tokenSecretRef,omitempty"`
@@ -146,17 +148,18 @@ type AWSAuth struct {
 type AWSCredentials struct {
 	// AWS Access key ID
 	// +optional
-	AccessKeyID string `json:"accessKeyID"`
+	AccessKeyID *string `json:"accessKeyID"`
 
 	// AWS Secret Access Key
 	// +optional
-	SecretAccessKey string `json:"secretAccessKey"`
+	SecretAccessKey *string `json:"secretAccessKey"`
 
 	// Reference to a key in a Secret that contains the AWS Access key ID and Secret Access Key secret used
 	// to authenticate AWS.
 	// The `key` field must be specified and denotes which entry within the Secret
 	// resource is used as the credentials secret.
-	SecretRef smmeta.SecretKeySelector `json:"secretRef"`
+	// +optional
+	SecretRef *smmeta.SecretKeySelector `json:"secretRef"`
 }
 
 type SecretStoreStatus struct {

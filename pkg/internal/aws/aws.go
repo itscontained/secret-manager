@@ -133,8 +133,8 @@ func (a *AWS) newConfig() (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if a.store.GetSpec().AWS.Region != "" {
-		cfg.Region = a.store.GetSpec().AWS.Region
+	if *a.store.GetSpec().AWS.Region != "" {
+		cfg.Region = *a.store.GetSpec().AWS.Region
 	}
 
 	return &cfg, nil

@@ -60,7 +60,7 @@ manifests: controller-gen ## Generate CRD manifests
 generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
 
-docker-build: test ## Build the docker image
+docker-build: manifests generate test build ## Build the docker image
 	docker build . -t ${IMG}
 
 docker-push: ## Push the docker image

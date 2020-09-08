@@ -19,7 +19,7 @@ projects for managing secrets.
 ### Basic Example
 To use an ExternalSecret first define a SecretStore for use.
 ```yaml
-apiVerson: secret-manager.itscontained.io/v1alpha1
+apiVersion: secret-manager.itscontained.io/v1alpha1
 kind: SecretStore
 metadata:
   name: vault
@@ -54,7 +54,7 @@ In this example, the Vault KV Secrets Engine has a secret at the path `teamA/hel
 
 The ExternalSecret referencing this secret would look like:
 ```yaml
-apiVerson: secret-manager.itscontained.io/v1alpha1
+apiVersion: secret-manager.itscontained.io/v1alpha1
 kind: ExternalSecret
 metadata:
   name: hello-service
