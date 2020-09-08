@@ -11,7 +11,7 @@ rules:
     resources: ["secretstores", "clustersecretstores", "externalsecrets"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["secret-manager.itscontained.io"]
-    resources: ["externalsecrets"]
+    resources: ["externalsecrets", "externalsecrets/status"]
     verbs: ["update", "patch"]
   - apiGroups: [""]
     resources: ["secrets"]
