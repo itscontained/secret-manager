@@ -16,12 +16,10 @@ package aws
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/awserr"
-	"github.com/aws/aws-sdk-go-v2/aws/credentials"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
@@ -46,7 +44,7 @@ func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.Gen
 		store:      store,
 	}
 
-	cfg, err := v.newConfig()
+	cfg, err := v.newConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -93,36 +91,17 @@ func (a *AWS) readSecret(ctx context.Context, id, version string) (map[string][]
 	req := a.client.GetSecretValueRequest(input)
 	resp, err := req.Send(ctx)
 	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				fmt.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidParameterException:
-				fmt.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidRequestException:
-				fmt.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-			case secretsmanager.ErrCodeDecryptionFailure:
-				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-			case secretsmanager.ErrCodeInternalServiceError:
-				fmt.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-			default:
-				fmt.Println(aerr.Error())
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			fmt.Println(err.Error())
-		}
 		return nil, err
 	}
-
-	secretData := resp.String()
-	fmt.Println(secretData)
-	byteMap := make(map[string][]byte)
-	return byteMap, nil
+	secretData := make(map[string][]byte, 0)
+	err = json.Unmarshal([]byte(*resp.SecretString), &secretData)
+	if err != nil {
+		return nil, err
+	}
+	return secretData, nil
 }
 
-func (a *AWS) newConfig() (*aws.Config, error) {
+func (a *AWS) newConfig(ctx context.Context) (*aws.Config, error) {
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		return nil, err
@@ -131,11 +110,10 @@ func (a *AWS) newConfig() (*aws.Config, error) {
 		cfg.Region = *a.store.GetSpec().AWS.Region
 	}
 	if *a.store.GetSpec().AWS.Auth.Credentials.AccessKeyID != "" {
-		creds := &aws.Credentials{
-			AccessKeyID:     *a.store.GetSpec().AWS.Auth.Credentials.AccessKeyID,
-			SecretAccessKey: *a.store.GetSpec().AWS.Auth.Credentials.SecretAccessKey,
-		}
-		_, err := cfg.Credentials.Retrieve(context.Background())
+		creds := *a.store.GetSpec().AWS.Auth.Credentials
+		scp := aws.NewStaticCredentialsProvider(*creds.AccessKeyID, *creds.SecretAccessKey, "")
+		cfg.Credentials = scp
+		_, err := cfg.Credentials.Retrieve(ctx)
 		if err != nil {
 			return nil, err
 		}
