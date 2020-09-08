@@ -93,7 +93,7 @@ func (a *AWS) readSecret(ctx context.Context, id, version string) (map[string][]
 	if err != nil {
 		return nil, err
 	}
-	secretData := make(map[string][]byte, 0)
+	secretData := make(map[string][]byte)
 	err = json.Unmarshal([]byte(*resp.SecretString), &secretData)
 	if err != nil {
 		return nil, err

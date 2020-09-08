@@ -129,39 +129,39 @@ type AWSStore struct {
 	// Auth configures how secret-manager authenticates with AWS.
 	// +optional
 	Auth *AWSAuth `json:"auth"`
-
 	// Region configures the region to send requests to.
 	// +optional
 	Region *string `json:"region"`
 }
 
 // Configuration used to authenticate with AWS.
-// Only one of `tokenSecretRef`, `appRole` or `kubernetes` may be specified.
+// Only one of `Credentials`, or `SecretRef` may be specified.
 type AWSAuth struct {
 	// Credentials authenticates with AWS using an AccessKeyID, and SecretAccessKey
 	// +optional
 	Credentials *AWSCredentials `json:"credentials,omitempty"`
-	// TokenSecretRef authenticates with Vault by presenting a token.
+	// SecretRef authenticates with AWS using an AccessKeyID, and SecretAccessKey stored in a Secret
 	// +optional
-	TokenSecretRef *smmeta.SecretKeySelector `json:"tokenSecretRef,omitempty"`
+	SecretRef *AWSSecretRef `json:"secretRef,omitempty"`
+}
+
+type AWSSecretRef struct {
+	// AccessKeyID Secret key for AWS Access key ID
+	// +optional
+	AccessKeyID *smmeta.SecretKeySelector `json:"accessKeyID,omitempty"`
+	// SecretAccessKey Secret key for WS Secret Access Key
+	// +optional
+	SecretAccessKey *smmeta.SecretKeySelector `json:"secretAccessKey,omitempty"`
 }
 
 // AWSCredentials authenticates with AWS using an AccessKeyID, and SecretAccessKey
 type AWSCredentials struct {
 	// AWS Access key ID
 	// +optional
-	AccessKeyID *string `json:"accessKeyID"`
-
+	AccessKeyID *string `json:"accessKeyID,omitempty"`
 	// AWS Secret Access Key
 	// +optional
-	SecretAccessKey *string `json:"secretAccessKey"`
-
-	// Reference to a key in a Secret that contains the AWS Access key ID and Secret Access Key secret used
-	// to authenticate AWS.
-	// The `key` field must be specified and denotes which entry within the Secret
-	// resource is used as the credentials secret.
-	// +optional
-	SecretRef *smmeta.SecretKeySelector `json:"secretRef"`
+	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
 }
 
 type SecretStoreStatus struct {
