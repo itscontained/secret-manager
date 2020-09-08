@@ -37,6 +37,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
           - --health-port={{ .Values.service.port}}
+          - --leader-election-namespace={{ .Release.Namespace }}
+          - --leader-elect=false
           ports:
             - containerPort: 9321
               protocol: TCP

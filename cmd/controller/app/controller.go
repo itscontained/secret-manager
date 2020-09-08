@@ -53,7 +53,6 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = smv1alpha1.AddToScheme(scheme)
-
 	config, err := clientcmd.BuildConfigFromFlags(c.options.APIServerHost, c.options.Kubeconfig)
 	if err != nil {
 		return nil, err
@@ -81,11 +80,11 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if err = (&esctrl.ExternalSecretReconciler{
 		Client: c.manager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecret"),
 		Scheme: c.manager.GetScheme(),
+		Reader: c.manager.GetAPIReader(),
 	}).SetupWithManager(c.manager); err != nil {
 		log.Errorf("Unable to create ExternalSecret controller: %v", err.Error())
 		return nil, err

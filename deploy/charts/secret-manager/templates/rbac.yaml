@@ -11,12 +11,14 @@ rules:
     resources: ["secretstores", "clustersecretstores", "externalsecrets"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["secret-manager.itscontained.io"]
-    resources: ["externalsecrets"]
+    resources: ["externalsecrets", "externalsecrets/status"]
     verbs: ["update", "patch"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "watch", "create", "update", "delete"]
-
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1

@@ -62,12 +62,12 @@ type ExternalSecretReconciler struct {
 	Clock  clock.Clock
 
 	storeFactory store.Factory
+	Reader       client.Reader
 }
 
 func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("externalsecret", req.NamespacedName)
-
 	extSecret := &smv1alpha1.ExternalSecret{}
 	if err := r.Get(ctx, req.NamespacedName, extSecret); err != nil {
 		log.Error(err, "unable to get ExternalSecret")
@@ -82,12 +82,12 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
-		store, err := r.getStore(ctx, extSecret)
+		s, err := r.getStore(ctx, extSecret)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, store, r.Client, req.Namespace)
+		storeClient, err := r.storeFactory.New(ctx, s, r.Client, r.Reader, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
@@ -143,12 +143,10 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner.APIVersion != smv1alpha1.ExtSecretGroupVersionKind.GroupVersion().String() || owner.Kind != smv1alpha1.ExtSecretKind {
 			return nil
 		}
-
 		return []string{owner.Name}
 	}); err != nil {
 		return err
 	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&smv1alpha1.ExternalSecret{}).
 		Owns(&corev1.Secret{}).
@@ -160,7 +158,10 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	for _, remoteRef := range extSecret.Spec.DataFrom {
 		secretMap, err := storeClient.GetSecretMap(ctx, remoteRef)
 		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", remoteRef.Path, err)
+			if remoteRef.Name != nil {
+				return nil, fmt.Errorf("path %q: %w", *remoteRef.Name, err)
+			}
+			return nil, fmt.Errorf("Name %q: %w", *remoteRef.Name, err)
 		}
 		secretDataMap = merge.Merge(secretDataMap, secretMap)
 	}
@@ -168,7 +169,10 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 	for _, secretRef := range extSecret.Spec.Data {
 		secretData, err := storeClient.GetSecret(ctx, secretRef.RemoteRef)
 		if err != nil {
-			return nil, fmt.Errorf("path %q: %w", secretRef.RemoteRef.Path, err)
+			if secretRef.RemoteRef.Name != nil {
+				return nil, fmt.Errorf("path %q: %w", *secretRef.RemoteRef.Name, err)
+			}
+			return nil, fmt.Errorf("Name %q: %w", *secretRef.RemoteRef.Name, err)
 		}
 		secretDataMap[secretRef.SecretKey] = secretData
 	}
@@ -188,21 +192,20 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		ref := types.NamespacedName{
 			Name: extSecret.Spec.StoreRef.Name,
 		}
-		if err := r.Get(ctx, ref, clusterStore); err != nil {
+		if err := r.Reader.Get(ctx, ref, clusterStore); err != nil {
 			return nil, fmt.Errorf("ClusterSecretStore %q: %w", ref.Name, err)
 		}
 		return clusterStore, nil
 	}
-
-	namespacedStore := &smv1alpha1.SecretStore{}
+	var namespacedStore smv1alpha1.SecretStore
 	ref := types.NamespacedName{
 		Namespace: extSecret.Namespace,
 		Name:      extSecret.Spec.StoreRef.Name,
 	}
-	if err := r.Get(ctx, ref, namespacedStore); err != nil {
+	if err := r.Reader.Get(ctx, ref, &namespacedStore); err != nil {
 		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
 	}
-	return namespacedStore, nil
+	return &namespacedStore, nil
 }
 
 func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {

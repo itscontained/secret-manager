@@ -58,15 +58,17 @@ type ObjectReference struct {
 	Group string `json:"group,omitempty"`
 }
 
-// A reference to a specific 'key' within a Secret resource.
+// A reference to a specific 'key' within a Secret resource,
 // In some instances, `key` is a required field.
 type SecretKeySelector struct {
 	// The name of the Secret resource being referred to.
 	LocalObjectReference `json:",inline"`
-
-	// The key of the entry in the Secret resource's `data` field to be used.
-	// Some instances of this field may be defaulted, in others it may be
-	// required.
+	// Namespace of the resource being referred to. Ignored if referent is not cluster-scoped. cluster-scoped defaults
+	// to the namespace of the referent.
+	// +optional
+	Namespace *string `json:"namespace,omitempty"`
+	// The key of the entry in the Secret resource's `data` field to be used. Some instances of this field may be
+	// defaulted, in others it may be required.
 	// +optional
 	Key string `json:"key,omitempty"`
 }

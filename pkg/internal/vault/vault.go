@@ -87,7 +87,7 @@ func (v *Vault) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) (
 		version = *ref.Version
 	}
 
-	data, err := v.readSecret(ctx, ref.Path, version)
+	data, err := v.readSecret(ctx, *ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (v *Vault) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference
 		version = *ref.Version
 	}
 
-	return v.readSecret(ctx, ref.Path, version)
+	return v.readSecret(ctx, *ref.Name, version)
 }
 
 func (v *Vault) readSecret(ctx context.Context, path, version string) (map[string][]byte, error) {
