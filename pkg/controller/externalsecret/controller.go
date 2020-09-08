@@ -64,6 +64,7 @@ type ExternalSecretReconciler struct {
 	Clock  clock.Clock
 
 	storeFactory store.Factory
+	Reader       client.Reader
 }
 
 func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
@@ -88,7 +89,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, s, r.Client, req.Namespace)
+		storeClient, err := r.storeFactory.New(ctx, s, r.Client, r.Reader, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
@@ -148,18 +149,6 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}); err != nil {
 		return err
 	}
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &smv1alpha1.SecretStore{}, ownerKey, func(rawObj runtime.Object) []string {
-		s := rawObj.(*smv1alpha1.SecretStore)
-		return []string{s.Name}
-	}); err != nil {
-		return err
-	}
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &smv1alpha1.ClusterSecretStore{}, ownerKey, func(rawObj runtime.Object) []string {
-		s := rawObj.(*smv1alpha1.ClusterSecretStore)
-		return []string{s.Name}
-	}); err != nil {
-		return err
-	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&smv1alpha1.ExternalSecret{}).
 		Owns(&corev1.Secret{}).
@@ -201,7 +190,7 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		ref := types.NamespacedName{
 			Name: extSecret.Spec.StoreRef.Name,
 		}
-		if err := r.Get(ctx, ref, clusterStore); err != nil {
+		if err := r.Reader.Get(ctx, ref, clusterStore); err != nil {
 			return nil, fmt.Errorf("ClusterSecretStore %q: %w", ref.Name, err)
 		}
 		return clusterStore, nil
@@ -211,7 +200,7 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		Namespace: extSecret.Namespace,
 		Name:      extSecret.Spec.StoreRef.Name,
 	}
-	if err := r.Get(context.TODO(), ref, namespacedStore); err != nil {
+	if err := r.Reader.Get(context.TODO(), ref, namespacedStore); err != nil {
 		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
 	}
 	return namespacedStore, nil

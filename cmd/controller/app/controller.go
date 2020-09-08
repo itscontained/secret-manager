@@ -84,6 +84,7 @@ func NewController(opts *options.ControllerOptions) (*Controller, error) {
 		Client: c.manager.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecret"),
 		Scheme: c.manager.GetScheme(),
+		Reader: c.manager.GetAPIReader(),
 	}).SetupWithManager(c.manager); err != nil {
 		log.Errorf("Unable to create ExternalSecret controller: %v", err.Error())
 		return nil, err

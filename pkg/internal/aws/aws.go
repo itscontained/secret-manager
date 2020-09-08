@@ -17,9 +17,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/awserr"
+	"github.com/aws/aws-sdk-go-v2/aws/credentials"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
@@ -38,9 +40,9 @@ type AWS struct {
 	client *secretsmanager.Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
+func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
 	v := &AWS{
-		kubeClient: kubeclient,
+		kubeClient: kubeClient,
 		store:      store,
 	}
 
@@ -54,7 +56,11 @@ func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.Gen
 }
 
 func (a *AWS) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
-	data, err := a.readSecret(ctx, *ref.ID, *ref.Version)
+	version := ""
+	if ref.Version != nil {
+		version = *ref.Version
+	}
+	data, err := a.readSecret(ctx, *ref.ID, version)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +80,6 @@ func (a *AWS) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) 
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-
 	return a.readSecret(ctx, *ref.ID, version)
 }
 
@@ -125,6 +130,15 @@ func (a *AWS) newConfig() (*aws.Config, error) {
 	if *a.store.GetSpec().AWS.Region != "" {
 		cfg.Region = *a.store.GetSpec().AWS.Region
 	}
-
+	if *a.store.GetSpec().AWS.Auth.Credentials.AccessKeyID != "" {
+		creds := &aws.Credentials{
+			AccessKeyID:     *a.store.GetSpec().AWS.Auth.Credentials.AccessKeyID,
+			SecretAccessKey: *a.store.GetSpec().AWS.Auth.Credentials.SecretAccessKey,
+		}
+		_, err := cfg.Credentials.Retrieve(context.Background())
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &cfg, nil
 }
