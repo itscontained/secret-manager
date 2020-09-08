@@ -42,6 +42,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -82,12 +84,12 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	}
 
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
-		store, err := r.getStore(ctx, extSecret)
+		s, err := r.getStore(ctx, extSecret)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, store, r.Client, req.Namespace)
+		storeClient, err := r.storeFactory.New(ctx, s, r.Client, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
@@ -148,10 +150,11 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}); err != nil {
 		return err
 	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&smv1alpha1.ExternalSecret{}).
 		Owns(&corev1.Secret{}).
+		Watches(source.NewKindWithCache(&smv1alpha1.SecretStore{}, mgr.GetCache()), &handler.Funcs{}).
+		Watches(source.NewKindWithCache(&smv1alpha1.ClusterSecretStore{}, mgr.GetCache()), &handler.Funcs{}).
 		Complete(r)
 }
 

@@ -23,8 +23,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 
-	vault "github.com/hashicorp/vault/api"
-
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/store"
 
@@ -33,25 +31,16 @@ import (
 
 var _ store.Client = &AWS{}
 
-type Client interface {
-	NewRequest(method, requestPath string) *vault.Request
-	RawRequestWithContext(ctx context.Context, r *vault.Request) (*vault.Response, error)
-	SetToken(v string)
-	Token() string
-}
-
 type AWS struct {
 	kubeClient ctrlclient.Client
 	store      smv1alpha1.GenericStore
-	namespace  string
 
 	client *secretsmanager.Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
+func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
 	v := &AWS{
 		kubeClient: kubeclient,
-		namespace:  namespace,
 		store:      store,
 	}
 
