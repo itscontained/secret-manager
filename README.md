@@ -39,7 +39,7 @@ that the ExternalSecrets have within the namespace or cluster when accessing the
 
 Once a SecretStore is defined an ExternalSecret can be created which references the Store.
 
-In this example, the Vault KV Secrets Engine has a secret at the path `teamA/hello-service`:
+In this example, the Vault KV Secrets Engine has a secret at the name `teamA/hello-service`:
 ```json
 {
   "data": {
@@ -63,7 +63,7 @@ spec:
   data:
   - secretKey: password
     remoteRef:
-      path: teamA/hello-service
+      name: teamA/hello-service
       property: serviceBapiKey
 ```
 
@@ -97,7 +97,7 @@ spec:
   data:
   - secretKey: password
     remoteRef:
-      path: teamA/hello-service
+      name: teamA/hello-service
       property: serviceBapiKey
 ```
 
@@ -120,7 +120,7 @@ spec:
   data:
   - secretKey: .dockerconfigjson
     remoteRef:
-      path: teamA/hello-service
+      name: teamA/hello-service
       property: private-images
   template:
     metadata:
@@ -158,7 +158,7 @@ spec:
   data:
   - secretKey: password
     remoteRef:
-      path: teamA/hello-service
+      name: teamA/hello-service
       property: serviceBapiKey
   template:
     data:
@@ -205,7 +205,7 @@ spec:
   storeRef:
     name: vault
   dataFrom:
-  - path: teamA/hello-service
+  - name: teamA/hello-service
 ```
 
 Generates:
