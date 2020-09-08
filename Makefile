@@ -63,6 +63,9 @@ generate: controller-gen ## Generate CRD code
 docker-build: manifests generate test build ## Build the docker image
 	docker build . -t ${IMG}
 
+docker-build-only: manifests build ## Build the docker image
+	docker build . -t ${IMG}
+
 docker-push: ## Push the docker image
 	docker push ${IMG}
 

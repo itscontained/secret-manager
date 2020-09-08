@@ -69,7 +69,6 @@ type ExternalSecretReconciler struct {
 func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("externalsecret", req.NamespacedName)
-
 	extSecret := &smv1alpha1.ExternalSecret{}
 	if err := r.Get(ctx, req.NamespacedName, extSecret); err != nil {
 		log.Error(err, "unable to get ExternalSecret")
@@ -145,8 +144,19 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner.APIVersion != smv1alpha1.ExtSecretGroupVersionKind.GroupVersion().String() || owner.Kind != smv1alpha1.ExtSecretKind {
 			return nil
 		}
-
 		return []string{owner.Name}
+	}); err != nil {
+		return err
+	}
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &smv1alpha1.SecretStore{}, ownerKey, func(rawObj runtime.Object) []string {
+		s := rawObj.(*smv1alpha1.SecretStore)
+		return []string{s.Name}
+	}); err != nil {
+		return err
+	}
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &smv1alpha1.ClusterSecretStore{}, ownerKey, func(rawObj runtime.Object) []string {
+		s := rawObj.(*smv1alpha1.ClusterSecretStore)
+		return []string{s.Name}
 	}); err != nil {
 		return err
 	}
@@ -196,13 +206,12 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		}
 		return clusterStore, nil
 	}
-
 	namespacedStore := &smv1alpha1.SecretStore{}
 	ref := types.NamespacedName{
 		Namespace: extSecret.Namespace,
 		Name:      extSecret.Spec.StoreRef.Name,
 	}
-	if err := r.Get(ctx, ref, namespacedStore); err != nil {
+	if err := r.Get(context.TODO(), ref, namespacedStore); err != nil {
 		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
 	}
 	return namespacedStore, nil

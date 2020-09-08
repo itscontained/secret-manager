@@ -25,7 +25,9 @@ type SecretStoreSpec struct {
 	// KV backend.
 	// +optional
 	Vault *VaultStore `json:"vault,omitempty"`
-	AWS   *AWSStore   `json:"aws,omitempty"`
+	// AWS configures this store to sync secrets using AWS SecretManager
+	// +optional
+	AWS *AWSStore `json:"aws,omitempty"`
 }
 
 // Configures an store to sync secrets using a HashiCorp Vault
