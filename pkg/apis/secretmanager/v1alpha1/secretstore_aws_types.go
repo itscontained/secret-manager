@@ -18,12 +18,12 @@ import smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 
 // Configures an store to sync secrets using AWS SecretManager
 type AWSStore struct {
-	// Auth configures how secret-manager authenticates with AWS.
-	// +optional
-	Auth *AWSAuth `json:"auth"`
 	// Region configures the region to send requests to.
 	// +optional
 	Region *string `json:"region"`
+	// Auth configures how secret-manager authenticates with AWS.
+	// +optional
+	AuthSecretRef *AWSAuth `json:"authSecretRef"`
 }
 
 // Configuration used to authenticate with AWS.

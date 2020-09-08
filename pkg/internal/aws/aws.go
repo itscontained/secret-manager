@@ -66,7 +66,7 @@ func (a *AWS) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	data, err := a.readSecret(ctx, *ref.ID, version)
+	data, err := a.readSecret(ctx, *ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (a *AWS) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) 
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	return a.readSecret(ctx, *ref.ID, version)
+	return a.readSecret(ctx, *ref.Name, version)
 }
 
 func (a *AWS) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
@@ -118,28 +118,28 @@ func (a *AWS) newConfig(ctx context.Context) (*aws.Config, error) {
 	if spec.Region != nil {
 		cfg.Region = *spec.Region
 	}
-	if spec.Auth == nil {
+	if spec.AuthSecretRef == nil {
 		return &cfg, nil
 	}
 	scoped := true
 	if a.store.GetTypeMeta().String() == "ClusterSecretStore" {
 		scoped = false
 	}
-	if spec.Auth.AccessKeyID == nil || spec.Auth.SecretAccessKey == nil {
+	if spec.AuthSecretRef.AccessKeyID == nil || spec.AuthSecretRef.SecretAccessKey == nil {
 		return nil, fmt.Errorf("missing accessKeyID/secretAccessKey in store config")
 	}
-	aKid, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.AccessKeyID, scoped)
+	aKid, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.AuthSecretRef.AccessKeyID, scoped)
 	if err != nil {
 		return nil, err
 	}
-	sak, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.SecretAccessKey, scoped)
+	sak, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.AuthSecretRef.SecretAccessKey, scoped)
 	if err != nil {
 		return nil, err
 	}
 	nScp := aws.NewStaticCredentialsProvider(aKid, sak, "")
 	cfg.Credentials = nScp
-	if spec.Auth.Role != nil {
-		role, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.Role, scoped)
+	if spec.AuthSecretRef.Role != nil {
+		role, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.AuthSecretRef.Role, scoped)
 		if err != nil {
 			return nil, err
 		}

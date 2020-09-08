@@ -78,13 +78,9 @@ type KeyReference struct {
 }
 
 type RemoteReference struct {
-	// Path to the key in the SecretStore. Must be a supported parameter
+	// Name of the key/path in the SecretStore. Must be a supported parameter
 	// +optional
-	Path *string `json:"path"`
-
-	// ID of the key in the SecretStore. Must be a supported parameter
-	// +optional
-	ID *string `json:"id"`
+	Name *string `json:"name"`
 
 	// Property to extract secret value at path in the SecretStore.
 	// Can be omitted if not supported by SecretStore or if entire secret should
