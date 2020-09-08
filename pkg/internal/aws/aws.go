@@ -18,13 +18,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/aws/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 
+	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/store"
+
+	corev1 "k8s.io/api/core/v1"
+
+	"k8s.io/apimachinery/pkg/types"
 
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -106,17 +114,59 @@ func (a *AWS) newConfig(ctx context.Context) (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	if *a.store.GetSpec().AWS.Region != "" {
-		cfg.Region = *a.store.GetSpec().AWS.Region
+	spec := *a.store.GetSpec().AWS
+	if spec.Region != nil {
+		cfg.Region = *spec.Region
 	}
-	if *a.store.GetSpec().AWS.Auth.Credentials.AccessKeyID != "" {
-		creds := *a.store.GetSpec().AWS.Auth.Credentials
-		scp := aws.NewStaticCredentialsProvider(*creds.AccessKeyID, *creds.SecretAccessKey, "")
-		cfg.Credentials = scp
-		_, err := cfg.Credentials.Retrieve(ctx)
+	if spec.Auth == nil {
+		return &cfg, nil
+	}
+	scoped := true
+	if a.store.GetTypeMeta().String() == "ClusterSecretStore" {
+		scoped = false
+	}
+	if spec.Auth.AccessKeyID == nil || spec.Auth.SecretAccessKey == nil {
+		return nil, fmt.Errorf("missing accessKeyID/secretAccessKey in store config")
+	}
+	aKid, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.AccessKeyID, scoped)
+	if err != nil {
+		return nil, err
+	}
+	sak, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.SecretAccessKey, scoped)
+	if err != nil {
+		return nil, err
+	}
+	nScp := aws.NewStaticCredentialsProvider(aKid, sak, "")
+	cfg.Credentials = nScp
+	if spec.Auth.Role != nil {
+		role, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.Auth.Role, scoped)
 		if err != nil {
 			return nil, err
 		}
+		stsClient := sts.New(cfg)
+		stsCp := stscreds.NewAssumeRoleProvider(stsClient, role)
+		cfg.Credentials = stsCp
 	}
 	return &cfg, nil
+}
+
+func (a *AWS) secretKeyRef(ctx context.Context, namespace string, secretRef smmeta.SecretKeySelector, scoped bool) (string, error) {
+	var secret corev1.Secret
+	ref := types.NamespacedName{
+		Namespace: namespace,
+		Name:      secretRef.Name,
+	}
+	if !scoped && secretRef.Namespace != nil {
+		ref.Namespace = *secretRef.Namespace
+	}
+	err := a.kubeClient.Get(ctx, ref, &secret)
+	if err != nil {
+		return "", err
+	}
+	keyBytes, ok := secret.Data[secretRef.Key]
+	if !ok {
+		return "", fmt.Errorf("no data for %q in secret '%s/%s'", secretRef.Key, secretRef.Name, namespace)
+	}
+	value := strings.TrimSpace(string(keyBytes))
+	return value, nil
 }

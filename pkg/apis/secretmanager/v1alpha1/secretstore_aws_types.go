@@ -14,9 +14,7 @@ limitations under the License.
 
 package v1alpha1
 
-import (
-	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
-)
+import smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 
 // Configures an store to sync secrets using AWS SecretManager
 type AWSStore struct {
@@ -29,31 +27,22 @@ type AWSStore struct {
 }
 
 // Configuration used to authenticate with AWS.
-// Only one of `Credentials`, or `SecretRef` may be specified.
+// Any of `AccessKeyID`, `SecretAccessKey` or `Role` can be specified. If not set we fall-back to using env vars, shared
+// credentials file or AWS Instance metadata
 type AWSAuth struct {
-	// Credentials authenticates with AWS using an AccessKeyID, and SecretAccessKey
-	// +optional
-	Credentials *AWSCredentials `json:"credentials,omitempty"`
-	// SecretRef authenticates with AWS using an AccessKeyID, and SecretAccessKey stored in a Secret
-	// +optional
-	SecretRef *AWSSecretRef `json:"secretRef,omitempty"`
-}
-
-type AWSSecretRef struct {
-	// AccessKeyID Secret key for AWS Access key ID
+	// The AccessKeyID is used for authentication. If not set we fall-back to using env vars, shared credentials file
+	// or AWS Instance metadata
+	// see: https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
 	// +optional
 	AccessKeyID *smmeta.SecretKeySelector `json:"accessKeyID,omitempty"`
-	// SecretAccessKey Secret key for WS Secret Access Key
+	// The SecretAccessKey is used for authentication. If not set we fall-back to using env vars, shared credentials file
+	// or AWS Instance metadata
+	// see: https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html#specifying-credentials
 	// +optional
 	SecretAccessKey *smmeta.SecretKeySelector `json:"secretAccessKey,omitempty"`
-}
-
-// AWSCredentials authenticates with AWS using an AccessKeyID, and SecretAccessKey
-type AWSCredentials struct {
-	// AWS Access key ID
+	// Role is a Role ARN which the SecretManager provider will assume using either the explicit credentials
+	// AccessKeyID/SecretAccessKey or the inferred credentials from environment variables, shared credentials
+	// file or AWS Instance metadata
 	// +optional
-	AccessKeyID *string `json:"accessKeyID,omitempty"`
-	// AWS Secret Access Key
-	// +optional
-	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
+	Role *smmeta.SecretKeySelector `json:"role,omitempty"`
 }

@@ -42,8 +42,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -152,8 +150,6 @@ func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&smv1alpha1.ExternalSecret{}).
 		Owns(&corev1.Secret{}).
-		Watches(source.NewKindWithCache(&smv1alpha1.SecretStore{}, mgr.GetCache()), &handler.Funcs{}).
-		Watches(source.NewKindWithCache(&smv1alpha1.ClusterSecretStore{}, mgr.GetCache()), &handler.Funcs{}).
 		Complete(r)
 }
 
