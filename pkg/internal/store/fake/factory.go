@@ -75,7 +75,7 @@ func (v *Factory) WithNew(f func(context.Context, client.Client, smv1alpha1.Gene
 	return v
 }
 
-func (v *Factory) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, namespace string) (store.Client, error) {
+func (v *Factory) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string) (store.Client, error) {
 	_, err := v.NewFn(ctx, kubeClient, store, namespace)
 	if err != nil {
 		return nil, err
