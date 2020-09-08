@@ -20,10 +20,10 @@ import smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 type AWSStore struct {
 	// Region configures the region to send requests to.
 	// +optional
-	Region *string `json:"region"`
+	Region *string `json:"region,omitempty"`
 	// Auth configures how secret-manager authenticates with AWS.
 	// +optional
-	AuthSecretRef *AWSAuth `json:"authSecretRef"`
+	AuthSecretRef *AWSAuth `json:"authSecretRef,omitempty"`
 }
 
 // Configuration used to authenticate with AWS.
