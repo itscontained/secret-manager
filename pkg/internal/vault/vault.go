@@ -231,7 +231,7 @@ func (v *Vault) secretKeyRef(ctx context.Context, namespace, name, key string) (
 
 	keyBytes, ok := secret.Data[key]
 	if !ok {
-		return "", fmt.Errorf("no data for %q in secret '%s/%s'", key, name, namespace)
+		return "", fmt.Errorf("no data for %q in secret '%s/%s'", key, namespace, name)
 	}
 
 	value := string(keyBytes)
@@ -291,7 +291,10 @@ func (v *Vault) requestTokenWithAppRoleRef(ctx context.Context, client Client, a
 }
 
 func (v *Vault) requestTokenWithKubernetesAuth(ctx context.Context, client Client, kubernetesAuth *smv1alpha1.VaultKubernetesAuth) (string, error) {
-	key := kubernetesAuth.SecretRef.Key
+	key := "token"
+	if kubernetesAuth.SecretRef.Key != "" {
+		key = kubernetesAuth.SecretRef.Key
+	}
 	jwt, err := v.secretKeyRef(ctx, v.namespace, kubernetesAuth.SecretRef.Name, key)
 	if err != nil {
 		return "", err
