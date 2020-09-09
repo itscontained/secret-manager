@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// SecretStoreSpec defines the authentication methods used
 type SecretStoreSpec struct {
 	// Vault configures this store to sync secrets using a HashiCorp Vault
 	// KV backend.
@@ -48,8 +49,7 @@ type SecretStore struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SecretStoreSpec   `json:"spec,omitempty"`
-	Status SecretStoreStatus `json:"status,omitempty"`
+	Spec SecretStoreSpec `json:"spec,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -72,8 +72,7 @@ type ClusterSecretStore struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SecretStoreSpec   `json:"spec,omitempty"`
-	Status SecretStoreStatus `json:"status,omitempty"`
+	Spec SecretStoreSpec `json:"spec,omitempty"`
 }
 
 // +kubebuilder:object:root=true
