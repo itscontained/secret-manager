@@ -99,7 +99,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				k8sClient.Get(context.Background(), key, fetched)
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errStoreNotFound)
 			}, timeout, interval).Should(BeTrue())
@@ -157,7 +157,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				k8sClient.Get(context.Background(), key, fetched)
 				By("Checking the status condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errStoreSetupFailed)
 			}, timeout, interval).Should(BeTrue())
@@ -220,7 +220,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the status condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -312,7 +312,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -399,7 +399,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			fetched := &smv1alpha1.ExternalSecret{}
 			Eventually(func() bool {
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -483,7 +483,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errTemplateFailed)
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a NotReady condition")
