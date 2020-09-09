@@ -67,7 +67,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -100,7 +99,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				k8sClient.Get(context.Background(), key, fetched)
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errStoreNotFound)
 			}, timeout, interval).Should(BeTrue())
@@ -123,7 +122,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -159,7 +157,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				k8sClient.Get(context.Background(), key, fetched)
 				By("Checking the status condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errStoreSetupFailed)
 			}, timeout, interval).Should(BeTrue())
@@ -182,7 +180,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -223,7 +220,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the status condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -259,7 +256,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key2",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
@@ -267,12 +263,10 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				},
 				DataFrom: []smv1alpha1.RemoteReference{
 					{
-						Name:     smmeta.String("id"),
 						Name:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
 					{
-						Name:     smmeta.String("id"),
 						Name:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
@@ -318,7 +312,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -365,7 +359,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String(""),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
@@ -406,7 +399,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			fetched := &smv1alpha1.ExternalSecret{}
 			Eventually(func() bool {
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Available())
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a ready condition")
 
@@ -451,7 +444,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
@@ -491,7 +483,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				By("Fetching the ExternalSecret successfully")
 				Expect(k8sClient.Get(context.Background(), key, fetched)).Should(Succeed())
 				By("Checking the Status Condition")
-				fetchedCond := fetched.Status.GetCondition(smmeta.TypeReady)
+				fetchedCond := fetched.Status.GetCondition(smmeta.TypeStatus)
 				return fetchedCond.Matches(smmeta.Unavailable()) &&
 					matches(fetchedCond.Message, errTemplateFailed)
 			}, timeout, interval).Should(BeTrue(), "The ExternalSecret should have a NotReady condition")

@@ -110,7 +110,8 @@ type ExternalSecretStatus struct {
 // +kubebuilder:object:root=true
 
 // ExternalSecret is the Schema for the externalsecrets API
-// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
+// +kubebuilder:printcolumn:name="LAST SYNC",type="date",JSONPath=".status.conditions[?(@.type=='Status')].lastTransitionTime"
+// +kubebuilder:printcolumn:name="STATUS",type="string",JSONPath=".status.conditions[?(@.type=='Status')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Namespaced,categories={secretmanager}

@@ -15,7 +15,7 @@ limitations under the License.
 package v1
 
 // ConditionStatus represents a condition's status.
-// +kubebuilder:validation:Enum=True;False;Unknown
+// +kubebuilder:validation:Enum=Synced;Error;Unknown
 type ConditionStatus string
 
 // These are valid condition statuses. "ConditionTrue" means a resource is in
@@ -24,11 +24,11 @@ type ConditionStatus string
 // condition or not. In the future, we could add other intermediate
 // conditions, e.g. ConditionDegraded.
 const (
-	// ConditionTrue represents the fact that a given condition is true
-	ConditionTrue ConditionStatus = "True"
+	// ConditionSynced represents the fact that a given condition is synced
+	ConditionSynced ConditionStatus = "Synced"
 
-	// ConditionFalse represents the fact that a given condition is false
-	ConditionFalse ConditionStatus = "False"
+	// ConditionError represents the fact that a given condition is errored
+	ConditionError ConditionStatus = "Error"
 
 	// ConditionUnknown represents the fact that a given condition is unknown
 	ConditionUnknown ConditionStatus = "Unknown"

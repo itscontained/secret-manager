@@ -19,8 +19,6 @@ import (
 	"sort"
 	"strings"
 
-	corev1 "k8s.io/api/core/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,8 +27,9 @@ type ConditionType string
 
 // Condition types.
 const (
-	// TypeReady resources are believed to be ready to handle work.
-	TypeReady ConditionType = "Ready"
+	//
+	// TypeStatus resources are believed to be ready to handle work.
+	TypeStatus ConditionType = "Status"
 )
 
 // A ConditionReason represents the reason a resource is in a condition.
@@ -48,8 +47,8 @@ type Condition struct {
 	// a resource at any point in time.
 	Type ConditionType `json:"type"`
 
-	// Status of this condition; is it currently True, False, or Unknown?
-	Status corev1.ConditionStatus `json:"status"`
+	// Status of this condition; is it currently Synced, Error, or Unknown?
+	Status ConditionStatus `json:"status"`
 
 	// LastTransitionTime is the last time this condition transitioned from one
 	// status to another.
@@ -121,7 +120,7 @@ func (s *ConditionedStatus) GetCondition(ct ConditionType) Condition {
 		}
 	}
 
-	return Condition{Type: ct, Status: corev1.ConditionUnknown}
+	return Condition{Type: ct, Status: ConditionUnknown}
 }
 
 // SetConditions sets the supplied conditions, replacing any existing conditions
@@ -183,8 +182,8 @@ func (s *ConditionedStatus) Equal(other *ConditionedStatus) bool {
 // currently observed to be available for use.
 func Available() Condition {
 	return Condition{
-		Type:               TypeReady,
-		Status:             corev1.ConditionTrue,
+		Type:               TypeStatus,
+		Status:             ConditionSynced,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ReasonAvailable,
 	}
@@ -196,8 +195,8 @@ func Available() Condition {
 // because its API reports it is unhealthy.
 func Unavailable() Condition {
 	return Condition{
-		Type:               TypeReady,
-		Status:             corev1.ConditionFalse,
+		Type:               TypeStatus,
+		Status:             ConditionError,
 		LastTransitionTime: metav1.Now(),
 		Reason:             ReasonUnavailable,
 	}
