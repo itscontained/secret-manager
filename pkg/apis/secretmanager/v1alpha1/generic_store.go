@@ -32,7 +32,6 @@ type GenericStore interface {
 	GetTypeMeta() *metav1.TypeMeta
 	GetObjectMeta() *metav1.ObjectMeta
 	GetSpec() *SecretStoreSpec
-	GetStatus() *SecretStoreStatus
 }
 
 // +kubebuilder:object:root:false
@@ -53,14 +52,8 @@ func (c *ClusterSecretStore) GetObjectMeta() *metav1.ObjectMeta {
 func (c *ClusterSecretStore) GetSpec() *SecretStoreSpec {
 	return &c.Spec
 }
-func (c *ClusterSecretStore) GetStatus() *SecretStoreStatus {
-	return &c.Status
-}
 func (c *ClusterSecretStore) SetSpec(spec SecretStoreSpec) {
 	c.Spec = spec
-}
-func (c *ClusterSecretStore) SetStatus(status SecretStoreStatus) {
-	c.Status = status
 }
 func (c *ClusterSecretStore) Copy() GenericStore {
 	return c.DeepCopy()
@@ -75,14 +68,8 @@ func (c *SecretStore) GetObjectMeta() *metav1.ObjectMeta {
 func (c *SecretStore) GetSpec() *SecretStoreSpec {
 	return &c.Spec
 }
-func (c *SecretStore) GetStatus() *SecretStoreStatus {
-	return &c.Status
-}
 func (c *SecretStore) SetSpec(spec SecretStoreSpec) {
 	c.Spec = spec
-}
-func (c *SecretStore) SetStatus(status SecretStoreStatus) {
-	c.Status = status
 }
 func (c *SecretStore) Copy() GenericStore {
 	return c.DeepCopy()

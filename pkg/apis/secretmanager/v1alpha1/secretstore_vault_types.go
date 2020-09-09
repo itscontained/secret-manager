@@ -102,10 +102,12 @@ type VaultKubernetesAuth struct {
 	// +kubebuilder:default=kubernetes
 	Path string `json:"mountPath"`
 
-	// The required Secret field containing a Kubernetes ServiceAccount JWT used
-	// for authenticating with Vault. Use of 'ambient credentials' is not
-	// supported.
-	SecretRef smmeta.SecretKeySelector `json:"secretRef"`
+	// Optional secret field containing a Kubernetes ServiceAccount JWT used
+	// for authenticating with Vault. If a name is specified without a key,
+	// `token` is the default. If one is not specified, the one bound to
+	// the controller will be used.
+	// +optional
+	SecretRef *smmeta.SecretKeySelector `json:"secretRef,omitempty"`
 
 	// A required field containing the Vault Role to assume. A Role binds a
 	// Kubernetes ServiceAccount with a set of Vault policies.

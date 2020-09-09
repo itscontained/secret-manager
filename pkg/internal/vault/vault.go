@@ -19,7 +19,9 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	vault "github.com/hashicorp/vault/api"
@@ -231,7 +233,7 @@ func (v *Vault) secretKeyRef(ctx context.Context, namespace, name, key string) (
 
 	keyBytes, ok := secret.Data[key]
 	if !ok {
-		return "", fmt.Errorf("no data for %q in secret '%s/%s'", key, name, namespace)
+		return "", fmt.Errorf("no data for %q in secret '%s/%s'", key, namespace, name)
 	}
 
 	value := string(keyBytes)
@@ -291,22 +293,36 @@ func (v *Vault) requestTokenWithAppRoleRef(ctx context.Context, client Client, a
 }
 
 func (v *Vault) requestTokenWithKubernetesAuth(ctx context.Context, client Client, kubernetesAuth *smv1alpha1.VaultKubernetesAuth) (string, error) {
-	key := kubernetesAuth.SecretRef.Key
-	jwt, err := v.secretKeyRef(ctx, v.namespace, kubernetesAuth.SecretRef.Name, key)
-	if err != nil {
-		return "", err
+	var jwt string
+	var err error
+	if kubernetesAuth.SecretRef == nil {
+		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount"
+		if _, err := os.Stat(tokenPath); !os.IsNotExist(err) {
+			jwtByte, err := ioutil.ReadFile(tokenPath)
+			if err != nil {
+				return "", fmt.Errorf("could not get serviceaccount jwt from disk. error: %s", err)
+			}
+			jwt = string(jwtByte)
+		}
+	} else {
+		key := "token"
+		if kubernetesAuth.SecretRef.Key != "" {
+			key = kubernetesAuth.SecretRef.Key
+		}
+		jwt, err = v.secretKeyRef(ctx, v.namespace, kubernetesAuth.SecretRef.Name, key)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	parameters := map[string]string{
 		"role": kubernetesAuth.Role,
 		"jwt":  jwt,
 	}
-
 	authPath := kubernetesAuth.Path
 	if authPath == "" {
 		authPath = smv1alpha1.DefaultVaultKubernetesAuthMountPath
 	}
-
 	url := strings.Join([]string{"/v1", "auth", authPath, "login"}, "/")
 	request := client.NewRequest("POST", url)
 
