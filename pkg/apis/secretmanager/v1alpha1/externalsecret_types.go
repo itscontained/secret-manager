@@ -100,7 +100,7 @@ type ExternalSecretStatus struct {
 // +kubebuilder:printcolumn:name="LAST SYNC",type="date",JSONPath=".status.conditions[?(@.type=='Ready')].lastTransitionTime"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
-// +kubebuilder:printcolumn:name="STORE",type="string",JSONPath=".spec.storeRef.name"
+// +kubebuilder:printcolumn:name="STORE",type="string",JSONPath=".spec.storeRef.name",priority=1
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Namespaced,categories={secretmanager},shortName=es
 type ExternalSecret struct {
