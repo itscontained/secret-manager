@@ -77,4 +77,4 @@ jobs:
           tags: ${{ steps.prep.outputs.tags }}
       - name: Inspect
         run: |
-          docker buildx imagetools inspect itscontained/secret-manager:${{ needs.version-check.outputs.version }}
+          docker buildx imagetools inspect ${DOCKER_IMAGE}:${{ needs.version-check.outputs.version }}
