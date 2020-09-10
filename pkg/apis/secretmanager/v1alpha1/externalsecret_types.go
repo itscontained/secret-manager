@@ -31,13 +31,6 @@ type ExternalSecretSpec struct {
 	// The 'name' field in this stanza is required at all times.
 	StoreRef ObjectReference `json:"storeRef"`
 
-	// The amount of time before the SecretStore will renew the values of
-	// of the ExternalSecret. If not set the secret will only be synced on
-	// creation of the ExternalSecret.
-	// +kubebuilder:validation:Format=duration
-	// +optional
-	RenewAfter *metav1.Duration `json:"renewAfter,omitempty"`
-
 	// Template which will be deep merged into the generated secret.
 	// Can be used to set for example annotations or type on the generated secret.
 	// +kubebuilder:validation:Type=object
@@ -99,21 +92,17 @@ type ExternalSecretStatus struct {
 	// List of status conditions to indicate the status of ExternalSecret.
 	// Known condition types are `Ready`.
 	smmeta.ConditionedStatus `json:",inline"`
-
-	// RenewalTime is the time at which the secret values will be next
-	// renewed.
-	// If not set, no upcoming renewal is scheduled.
-	// +optional
-	RenewalTime *metav1.Time `json:"renewalTime,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
 // ExternalSecret is the Schema for the externalsecrets API
-// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
+// +kubebuilder:printcolumn:name="LAST SYNC",type="date",JSONPath=".status.conditions[?(@.type=='Ready')].lastTransitionTime"
+// +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:printcolumn:name="STORE",type="string",JSONPath=".spec.storeRef.name",priority=1
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Namespaced,categories={secretmanager}
+// +kubebuilder:resource:scope=Namespaced,categories={secretmanager},shortName=es
 type ExternalSecret struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

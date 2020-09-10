@@ -67,7 +67,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -123,7 +122,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -182,7 +180,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("key"),
 						},
@@ -259,7 +256,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key2",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
@@ -267,12 +263,10 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				},
 				DataFrom: []smv1alpha1.RemoteReference{
 					{
-						Name:     smmeta.String("id"),
 						Name:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
 					{
-						Name:     smmeta.String("id"),
 						Name:     smmeta.String("secret/data/bar"),
 						Property: smmeta.String("property"),
 					},
@@ -365,7 +359,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String(""),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},
@@ -451,7 +444,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					{
 						SecretKey: "key1",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("id"),
 							Name:     smmeta.String("secret/data/foo"),
 							Property: smmeta.String("property"),
 						},

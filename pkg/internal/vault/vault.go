@@ -297,8 +297,9 @@ func (v *Vault) requestTokenWithKubernetesAuth(ctx context.Context, client Clien
 	var err error
 	if kubernetesAuth.SecretRef == nil {
 		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount"
-		if _, err := os.Stat(tokenPath); !os.IsNotExist(err) {
-			jwtByte, err := ioutil.ReadFile(tokenPath)
+		if _, err = os.Stat(tokenPath); !os.IsNotExist(err) {
+			var jwtByte []byte
+			jwtByte, err = ioutil.ReadFile(tokenPath)
 			if err != nil {
 				return "", fmt.Errorf("could not get serviceaccount jwt from disk. error: %s", err)
 			}

@@ -41,10 +41,9 @@ type SecretStoreStatus struct {
 // +kubebuilder:object:root=true
 
 // SecretStore is the Schema for the SecretStore API
-// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Namespaced,categories={secretmanager}
+// +kubebuilder:resource:scope=Namespaced,categories={secretmanager},shortName=ss
 type SecretStore struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -64,10 +63,9 @@ type SecretStoreList struct {
 // +kubebuilder:object:root=true
 
 // ClusterSecretStore is the Schema for the ClusterSecretStore API
-// +kubebuilder:printcolumn:name="Type",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster,categories={secretmanager}
+// +kubebuilder:resource:scope=Cluster,categories={secretmanager},shortName=css
 type ClusterSecretStore struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
