@@ -54,7 +54,7 @@ lint: lint/check ## run golangci-lint
 	fi
 
 test: ## Run tests
-	go test -v -race ./... -coverprofile cover.out
+	go test -v -race $$(go list ./... | grep -v e2e) -coverprofile cover.out
 
 build: generate ## Build manager binary
 	CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o bin/manager ./cmd/controller/main.go
@@ -66,14 +66,14 @@ manifests: controller-gen ## Generate CRD manifests
 generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
 
-docker-build: manifests generate test ## Build the docker image
-	docker build . -t $(IMG) --load
+docker-build: manifests generate ## Build the docker image
+	docker build . -t $(IMG)
 
 crds-to-chart: ## copy crds to helm chart directory
 	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
 	for i in deploy/charts/secret-manager/templates/crds/*.yaml; do \
 		sed -i '1s/.*/{{- if .Values.installCRDs }}/;$$a{{- end }}' $$i; \
-    done
+	done
 
 docker-build-kind-deploy: docker-build crds-to-chart ## copy
 	kind load docker-image ${IMG} --name test
@@ -89,6 +89,9 @@ docker-push: ## Push the docker image
 helm-docs: ## Generate helm docs
 	cd $(HELM_DIR); \
 	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:latest
+
+e2e: generate manifests
+	$(MAKE) -C e2e test
 
 # find or download controller-gen
 # download controller-gen if necessary

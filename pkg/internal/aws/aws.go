@@ -18,9 +18,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/aws/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -40,6 +42,11 @@ import (
 )
 
 var _ store.Client = &AWS{}
+
+const (
+	AWSSecretsmanagerEndpoint = "AWS_SECRETSMANAGER_ENDPOINT"
+	AWSSTSEndpoint            = "AWS_STS_ENDPOINT"
+)
 
 type AWS struct {
 	kubeClient ctrlclient.Client
@@ -102,12 +109,16 @@ func (a *AWS) readSecret(ctx context.Context, id, version string) (map[string][]
 	req := a.client.GetSecretValueRequest(input)
 	resp, err := req.Send(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting secret value: %w", err)
+	}
+	smData := make(map[string]string)
+	err = json.Unmarshal([]byte(*resp.SecretString), &smData)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal secret value: %w", err)
 	}
 	secretData := make(map[string][]byte)
-	err = json.Unmarshal([]byte(*resp.SecretString), &secretData)
-	if err != nil {
-		return nil, err
+	for k, v := range smData {
+		secretData[k] = []byte(v)
 	}
 	return secretData, nil
 }
@@ -117,6 +128,7 @@ func (a *AWS) newConfig(ctx context.Context) (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	cfg.EndpointResolver = &EndpointResolver{}
 	spec := *a.store.GetSpec().AWS
 	if spec.Region != nil {
 		cfg.Region = *spec.Region
@@ -139,7 +151,7 @@ func (a *AWS) newConfig(ctx context.Context) (*aws.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	nScp := aws.NewStaticCredentialsProvider(aKid, sak, "")
+	nScp := aws.NewStaticCredentialsProvider(aKid, sak, "secret-manager")
 	cfg.Credentials = nScp
 	if spec.AuthSecretRef.Role != nil {
 		role, err := a.secretKeyRef(ctx, a.store.GetNamespace(), *spec.AuthSecretRef.Role, scoped)
@@ -172,4 +184,28 @@ func (a *AWS) secretKeyRef(ctx context.Context, namespace string, secretRef smme
 	}
 	value := strings.TrimSpace(string(keyBytes))
 	return value, nil
+}
+
+// EndpointResolver resolves custom endpoints for aws services
+type EndpointResolver struct {
+	res endpoints.Resolver
+}
+
+// ResolveEndpoint resolves custom endpoints if provided
+func (r *EndpointResolver) ResolveEndpoint(service, region string) (aws.Endpoint, error) {
+	if ep := os.Getenv(AWSSecretsmanagerEndpoint); ep != "" {
+		if service == "secretsmanager" {
+			return aws.Endpoint{
+				URL: ep,
+			}, nil
+		}
+	}
+	if ep := os.Getenv(AWSSTSEndpoint); ep != "" {
+		if service == "sts" {
+			return aws.Endpoint{
+				URL: ep,
+			}, nil
+		}
+	}
+	return r.res.ResolveEndpoint(service, region)
 }

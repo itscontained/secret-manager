@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  selector:
+    matchLabels:
+      app: localstack
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+      - name: localstack
+        image: localstack/localstack:0.11.5
+        resources:
+          limits:
+            memory: 500Mi
+        livenessProbe:
+          tcpSocket:
+            port: 4566
+        readinessProbe:
+          exec:
+            command:
+              - /usr/bin/awslocal
+              - sts
+              - get-caller-identity
+        ports:
+        - containerPort: 4566
+          name: edge
+        env:
+          - name: SERVICES
+            value: "ssm,secretsmanager,sts"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+spec:
+  # selector tells Kubernetes what Deployment this Service
+  # belongs to
+  selector:
+    app: localstack
+  ports:
+  - port: 80
+    targetPort: edge
+---
