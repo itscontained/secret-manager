@@ -68,7 +68,6 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          build-args: VERSION=${{ needs.version-check.outputs.version }}
           platforms: |
             linux/amd64
             linux/arm64
