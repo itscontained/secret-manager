@@ -58,9 +58,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 
 	Context("ExternalSecrets", func() {
 		It("An ExternalSecret referencing a SecretStore which does not exist should be NotReady", func() {
-			status := smv1alpha1.ExternalSecretStatus{
-				ConditionedStatus: smmeta.ConditionedStatus{},
-			}
 			spec := smv1alpha1.ExternalSecretSpec{
 				StoreRef: smv1alpha1.ObjectReference{
 					Name: "does-not-exist",
@@ -87,8 +84,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 					Name:      key.Name,
 					Namespace: key.Namespace,
 				},
-				Spec:   spec,
-				Status: status,
+				Spec: spec,
 			}
 
 			By("Creating the ExternalSecret successfully")

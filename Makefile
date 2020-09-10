@@ -22,7 +22,7 @@ LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.gitState=${GIT_DIR
 
 IMG_TAG ?= ${GIT_TAG}
 IMG ?= itscontained/secret-manager:${IMG_TAG}
-
+HELM_DIR ?= deploy/charts/secret-manager
 
 all: docker-build
 
@@ -68,10 +68,17 @@ generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
 
 docker-build: manifests generate test build ## Build the docker image
-	docker build . -t ${IMG}
+	docker build . -t $(IMG)
 
-docker-build-only: manifests build ## Build the docker image
-	docker build . -t ${IMG}
+crds-to-chart: ## copy crds to helm chart directory
+	cp deploy/crds/*.yaml $(HELM_DIR)/
+
+docker-build-kind-deploy: docker-build crds-to-chart ## copy
+	kind load docker-image ${IMG} --name test
+	kind export kubeconfig --name test --kubeconfig $(HOME)/.kube/configs/kind-test.yaml
+	kubie ctx kind-test --namespace kube-system
+	helm upgrade secret-manager $(HELM_DIR)/. -f values.yaml --set image.tag=$(IMG_TAG),image.pullPolicy=IfNotPresent,installCRDs=true --namespace kube-system --install
+
 
 docker-push: ## Push the docker image
 	docker push ${IMG}
