@@ -21,6 +21,16 @@ RUN make build
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
+LABEL maintainer="DirtyCajunRice,mcavoyk" \
+  org.opencontainers.image.created=$BUILD_DATE \
+  org.opencontainers.image.url="https://github.com/itscontained/secret-manager" \
+  org.opencontainers.image.source="https://github.com/itscontained/secret-manager" \
+  org.opencontainers.image.version=$VERSION \
+  org.opencontainers.image.revision=$VCS_REF \
+  org.opencontainers.image.vendor="itscontained" \
+  org.opencontainers.image.title="secret-manager" \
+  org.opencontainers.image.description="Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External SecretStores." \
+  org.opencontainers.image.licenses="APACHE"
 COPY --from=builder /workspace/bin/manager .
 USER nonroot:nonroot
 
