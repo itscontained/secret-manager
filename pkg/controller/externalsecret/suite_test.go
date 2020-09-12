@@ -87,6 +87,7 @@ var _ = BeforeSuite(func(done Done) {
 	storeFactory = fakestore.New()
 	err = (&ExternalSecretReconciler{
 		Client:       k8sClient,
+		Reader:       k8sManager.GetAPIReader(),
 		Scheme:       k8sManager.GetScheme(),
 		Log:          ctrl.Log.WithName("controllers").WithName("ExternalSecrets"),
 		storeFactory: storeFactory,

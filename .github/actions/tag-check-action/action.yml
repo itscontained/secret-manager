@@ -1,0 +1,51 @@
+name: 'Tag Check Action'
+description: 'A Github Action see if the tag supplied already exists on dockerhub'
+inputs:
+  image:
+    description: "Image to check"
+    required: true
+  tag:
+    description: "Tag to check"
+    required: true
+  skip:
+    description: "Whether to skip check"
+    required: false
+    default: 'false'
+outputs:
+  tag:
+    description: "Return checked tag"
+    value: ${{ steps.check-tag.outputs.tag }}
+  exists:
+    description: "Return boolean of exist status"
+    value: ${{ steps.check-tag.outputs.exists }}
+runs:
+  using: "composite"
+  steps:
+    - name: Check Upstream Tag Against DockerHub Registry
+      id: check-tag
+      shell: bash
+      env:
+        VERSION: ${{ inputs.tag }}
+      run: |
+        if [[ "${{ inputs.skip }}" == "true" ]] && [[ -n ${VERSION} ]]
+        then
+          echo "⏭️ Skipping check - Using given tag - ${{ inputs.image }}:${{ inputs.tag }}"
+          echo "::set-output name=exists::false"
+          echo "::set-output name=tag::${{ inputs.tag }}"
+          exit
+        elif [[ "${{ inputs.skip }}" == "true" ]] && [[ -z ${VERSION} ]]
+        then
+          echo "⏮️ Requested skip check but missing input tag"
+          exit 1
+        fi
+        echo "🔍 Checking ${{ inputs.image }} for a tag that matches ${{ inputs.tag }}"
+        TAG="$(curl -s https://registry.hub.docker.com/v1/repositories/${{ inputs.image }}/tags | jq -r '.[] | select(.name==env.VERSION) | .name')"
+        if [[ -n "$TAG" ]]
+        then
+          echo "🎉 Match found! - ${{ inputs.image }}:${{ inputs.tag }}"
+          echo "::set-output name=exists::true"
+        else
+          echo "❌ Could not find a tag matching ${{ inputs.tag }} for ${{ inputs.image }}"
+          echo "::set-output name=exists::false"
+        fi
+        echo "::set-output name=tag::${{ inputs.tag }}"

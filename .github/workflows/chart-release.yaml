@@ -9,31 +9,21 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{ env.GHCR_USERNAME }}"
+          git config --global user.email "${{ env.GHCR_USERNAME }}@users.noreply.github.com"
       - name: Checkout secret-manger
         uses: actions/checkout@v2
         with:
           path: secret-manager
-      - name: Import Secrets
-        uses: RichiCoder1/vault-action@v1.0.1
-        with:
-          url: ${{ secrets.VaultURL }}
-          method: approle
-          roleId: ${{ secrets.appRoleID }}
-          secretId: ${{ secrets.appSecretID }}
-          path: kv-v2
-          secrets: |
-            auth/github token | GITHUB_PAT;
       - name: Checkout Chart Repo
         uses: actions/checkout@v2
         with:
-          token: "${{ env.GITHUB_PAT }}"
+          token: ${{ env.GHCR_PASSWORD }}
           repository: "itscontained/charts"
           ref: gh-pages
           path: charts
-      - name: Configure Git
-        run: |
-          git config --global user.name "$GITHUB_ACTOR"
-          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Install Helm
         run: |
           curl -fsSLo get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -44,11 +34,7 @@ jobs:
           wget https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz
           tar xzvf chart-releaser_1.0.0_linux_amd64.tar.gz cr
       - name: Copy CRDs to chart
-        run: |
-          cp secret-manager/deploy/crds/*.yaml secret-manager/deploy/charts/secret-manager/templates/crds/;
-          for i in secret-manager/deploy/charts/secret-manager/templates/crds/*.yaml; do
-               sed -i '1s/.*/{{- if .Values.installCRDs }}/;$a{{- end }}' $i;
-          done
+        run: make crds-to-chart
       - name: Release Chart
         run: |
           helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
