@@ -70,7 +70,10 @@ docker-build: manifests generate test build ## Build the docker image
 	docker build . -t $(IMG)
 
 crds-to-chart: ## copy crds to helm chart directory
-	cp deploy/crds/*.yaml $(HELM_DIR)/
+	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
+	for i in deploy/charts/secret-manager/templates/crds/*.yaml; do \
+		sed -i '1s/.*/{{- if .Values.installCRDs }}/;$$a{{- end }}' $$i; \
+    done
 
 docker-build-kind-deploy: docker-build crds-to-chart ## copy
 	kind load docker-image ${IMG} --name test
