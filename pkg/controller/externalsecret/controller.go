@@ -97,6 +97,8 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("failed to set ExternalSecret controller reference: %w", err)
 		}
 
+		secret.Labels = extSecret.Labels
+		secret.Annotations = extSecret.Annotations
 		secret.Data, err = r.getSecret(ctx, storeClient, extSecret)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errGetSecretDataFailed, err)
@@ -108,6 +110,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 				return fmt.Errorf("%s: %w", errTemplateFailed, err)
 			}
 		}
+
 		return nil
 	})
 
@@ -197,15 +200,15 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 		}
 		return clusterStore, nil
 	}
-	var namespacedStore smv1alpha1.SecretStore
+	namespacedStore := &smv1alpha1.SecretStore{}
 	ref := types.NamespacedName{
 		Namespace: extSecret.Namespace,
 		Name:      extSecret.Spec.StoreRef.Name,
 	}
-	if err := r.Reader.Get(ctx, ref, &namespacedStore); err != nil {
+	if err := r.Reader.Get(ctx, ref, namespacedStore); err != nil {
 		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
 	}
-	return &namespacedStore, nil
+	return namespacedStore, nil
 }
 
 func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {
