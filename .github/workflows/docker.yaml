@@ -1,4 +1,4 @@
-name: docker
+name: Release Container
 on:
   schedule:
     - cron: '0 10 * * *' # everyday at 10am
@@ -8,6 +8,11 @@ on:
       - 'v*.*.*'
   pull_request:
     branches: master
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
 env:
   IMAGES: ${{ github.repository_owner }}/secret-manager
   PLATFORMS: "linux/amd64,linux/arm64,linux/arm/v7"
