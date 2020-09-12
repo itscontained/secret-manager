@@ -1,6 +1,26 @@
 apiVersion: v2
 name: secret-manager
-description: External secret management for Kubernetes.
+description: External secret management for Kubernetes
 type: application
 version: 0.1.0
-appVersion: 0.1.0
+appVersion: %%APPVERSION%%
+keywords:
+  - kubernetes
+  - secret
+  - secretstore
+  - secret-management
+  - vault
+  - aws
+  - azure
+  - crd
+home: https://github.com/itscontained/secret-manager
+sources:
+  - https://github.com/itscontained/secret-manager
+  - https://hub.docker.com/r/itscontained/secret-manager
+  - https://quay.io/repository/itscontained/secret-manager
+  - https://github.com/orgs/itscontained/packages/container/secret-manager
+maintainers:
+  - name: DirtyCajunRice
+    email: nick@cajun.pro
+  - name: mcavoyk
+    email: kellinmcavoy@gmail.com
