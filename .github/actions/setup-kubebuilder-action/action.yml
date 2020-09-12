@@ -20,8 +20,8 @@ runs:
       run: |
         echo "📥 Downloading Kubebuilder ${{ inputs.version }} for ${{ inputs.os }}-${{ inputs.arch }}"
         curl -Lso /tmp/kubebuilder.tgz "https://go.kubebuilder.io/dl/${{ inputs.version }}/${{ inputs.os }}/${{ inputs.arch }}"
-        sudo mkdir -p /usr/local/kubebuilder/bin/
-        sudo chmod 777 /usr/local/kubebuilder/bin/
-        tar ixzf /tmp/kubebuilder.tgz -C /tmp/kubebuilder --strip-components 2
-        export PATH="${PATH}:/tmp/kubebuilder"
+        sudo mkdir -p /usr/local/kubebuilder/bin
+        sudo chmod 777 /usr/local/kubebuilder/bin
+        tar ixzf /tmp/kubebuilder.tgz -C /usr/local/kubebuilder/bin --strip-components 2
+        export PATH="${PATH}:/usr/local/kubebuilder/bin"
         echo "🎉 Kubebuilder downloaded and added to \$PATH"
