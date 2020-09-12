@@ -36,9 +36,6 @@ ifneq ($(strip $(shell which golangci-lint)),)
 GOLANGCI_LINT=$(shell which golangci-lint)
 else ifneq (,$(wildcard $(GOBIN)/golangci-lint))
 GOLANGCI_LINT=$(GOBIN)/golangci-lint
-else
-	@echo -e "\033[0;33mgolangci-lint is not installed: run \`\033[0;32mmake lint-install\033[0m\033[0;33m\` or install it from https://golangci-lint.run\033[0m"; \
-	exit 1
 endif
 
 lint-install: ## installs golangci-lint to the go bin dir
