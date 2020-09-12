@@ -1,0 +1,26 @@
+name: 'Setup Kubebuilder'
+description: 'A Github Action to setup Kubebuilder'
+inputs:
+  os:
+    description: "OS version"
+    required: false
+    default: 'linux'
+  arch:
+    description: "Arch version"
+    required: false
+    default: 'amd64'
+  version:
+    description: "Kubebuilder version"
+    required: false
+    default: '2.3.1'
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        echo "📥 Downloading Kubebuilder ${{ inputs.version }} for ${{ inputs.os }}-${{ inputs.arch }}"
+        curl -Lso /tmp/kubebuilder.tgz "https://go.kubebuilder.io/dl/${{ inputs.version }}/${{ inputs.os }}/${{ inputs.arch }}"
+        mkdir /tmp/kubebuilder
+        tar ixzf /tmp/kubebuilder.tgz -C /tmp/kubebuilder --strip-components 2
+        export PATH="${PATH}:/tmp/kubebuilder"
+        echo "🎉 Kubebuilder downloaded and added to '$PATH'"

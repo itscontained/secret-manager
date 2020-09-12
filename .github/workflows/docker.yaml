@@ -8,14 +8,35 @@ on:
       - 'v*.*.*'
   pull_request:
     branches: master
-
+env:
+  IMAGES: ${{ github.repository_owner }}/secret-manager
+  PLATFORMS: "linux/amd64,linux/arm64,linux/arm/v7"
 jobs:
-  docker:
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+      - name: Set up Go 1.15
+        uses: actions/setup-go@v1
+        with:
+          go-version: '~1.15.0'
+      - name: Install Make
+        run: sudo apt-get install -y make
+      - name: Setup Kubebuilder
+        uses: ./.github/actions/setup-kubebuilder-action
+      - name: Lint
+        run: |
+          make lint-install
+          make lint
+      - name: Test
+        run: make test
+  docker:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: Prepare
         id: prep
         run: |
@@ -27,56 +48,41 @@ jobs:
           if [ "${{ github.event_name }}" = "schedule" ]; then
             VERSION=nightly
           fi
-          TAGS="${DOCKER_IMAGE}:${VERSION},ghcr.io/${DOCKER_IMAGE}:${VERSION},quay.io/${DOCKER_IMAGE}:${VERSION}"
+          TAGS="${VERSION}"
           if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:latest,ghcr.io/${DOCKER_IMAGE}:latest,quay.io/${DOCKER_IMAGE}:latest"
+            TAGS="$TAGS,latest"
           fi
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           echo ::set-output name=vcs_ref::${GITHUB_SHA::8}
-
+      - uses: ./.github/actions/docker-target-image-list-action
+        name: Generate Target Images
+        id: gen-tags
+        with:
+          images: ${{ env.IMAGES }}
+          tags: ${{ steps.prep.outputs.tags }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         with:
           install: true
           version: latest
           driver-opts: image=moby/buildkit:master
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Login to Quay
-        uses: docker/login-action@v1
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_PASSWORD }}
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_PASSWORD }}
-
-      - name: Build and push
+      - name: Docker Multi Login
+        uses: ./.github/actions/docker-multi-login-action
+        env:
+          secrets: ${{ toJSON(secrets) }}
+      - name: Build and Push
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile
-          platforms: |
-            linux/amd64
-            linux/arm64
-            linux/arm/v7
+          platforms: ${{ env.PLATFORMS }}
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: ${{ steps.gen-tags.outputs.fully-qualified-target-images }}
           build-args: |
             VERSION=${{ steps.prep.outputs.version }}
             BUILD_DATE=${{ steps.prep.outputs.build_date }}
@@ -84,4 +90,7 @@ jobs:
       - name: Inspect
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          docker buildx imagetools inspect ${DOCKER_IMAGE}:${{ steps.prep.outputs.version }}
+          IFS=',' read -r -a images <<< "${{ steps.gen-tags.outputs.fully-qualified-target-images }}"
+          for image in "${images[@]}"; do
+              docker buildx imagetools inspect ${image}
+          done

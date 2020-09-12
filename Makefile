@@ -54,7 +54,7 @@ lint: lint/check ## run golangci-lint
 		exit 1; \
 	fi
 
-test: lint ## Run tests
+test: ## Run tests
 	go test -v -race ./... -coverprofile cover.out
 
 build: generate ## Build manager binary
