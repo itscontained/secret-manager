@@ -23,4 +23,4 @@ runs:
         mkdir /tmp/kubebuilder
         tar ixzf /tmp/kubebuilder.tgz -C /tmp/kubebuilder --strip-components 2
         export PATH="${PATH}:/tmp/kubebuilder"
-        echo "🎉 Kubebuilder downloaded and added to '$PATH'"
+        echo "🎉 Kubebuilder downloaded and added to \$PATH"
