@@ -196,6 +196,12 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      key.Name,
 					Namespace: key.Namespace,
+					Labels: map[string]string{
+						"label-key": "label-value",
+					},
+					Annotations: map[string]string{
+						"annotation-key": "annotation-value",
+					},
 				},
 				Spec: spec,
 			}
@@ -237,6 +243,11 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				"The owner kind should be ExternalSecret")
 			Expect(fetchedSecret.OwnerReferences[0].Name).Should(BeIdenticalTo(toCreate.Name),
 				"The owner name should be the name of the ExternalSecret")
+
+			Expect(fetchedSecret.Labels["label-key"]).Should(BeIdenticalTo(toCreate.Labels["label-key"]),
+				"The secret should have labels of the ExternalSecret")
+			Expect(fetchedSecret.Annotations["annotation-key"]).Should(BeIdenticalTo(toCreate.Annotations["annotation-key"]),
+				"The secret should have annotations of the ExternalSecret")
 		})
 
 		It("An ExternalSecret with dataFrom specified should generate secret", func() {
