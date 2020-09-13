@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+    paths:
+      - 'deploy/charts/secret-manager/Chart.yaml'
   pull_request:
     branches: master
     paths:
