@@ -1,6 +1,7 @@
 name: Chart
 on:
   push:
+    branches: master
     tags:
       - '*'
     paths:
