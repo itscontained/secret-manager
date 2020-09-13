@@ -77,7 +77,8 @@ jobs:
         run: cd secret-manager && make helm-docs
       - name: Release Chart
         run: |
-          sed -i "s/0.0.0/${GITHUB_REF#refs/tags/v}/" secret-manager/deploy/charts/secret-manager/Chart.yaml
+          LASTTAG=$(git describe --abbrev=0 --tags)
+          sed -i "s/0.0.0/${LASTTAG#v}/" secret-manager/deploy/charts/secret-manager/Chart.yaml
           helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
           ./cr upload -t ${GITHUB_PAT} && ./cr index
           cd charts/ && git add . && git commit -m "release chart" && git push
