@@ -76,7 +76,7 @@ jobs:
           cd ../
       - name: Release Chart
         run: |
-          sed -i 's/%%APPVERSION%%/${GITHUB_REF#refs/tags/v}/' deploy/charts/secret-manager/Chart.yaml
+          sed -i 's/0.0.0/${GITHUB_REF#refs/tags/v}/' deploy/charts/secret-manager/Chart.yaml
           helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
           ./cr upload -t ${GITHUB_PAT} && ./cr index
           cd charts/ && git add . && git commit -m "release chart" && git push
