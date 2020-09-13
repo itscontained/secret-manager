@@ -78,6 +78,7 @@ jobs:
       - name: Release Chart
         run: |
           cd secret-manager
+          git fetch --prune --unshallow;
           LASTTAG=$(git describe --abbrev=0 --tags)
           cd ..
           sed -i "s/0.0.0/${LASTTAG#v}/" secret-manager/deploy/charts/secret-manager/Chart.yaml
