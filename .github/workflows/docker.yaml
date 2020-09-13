@@ -6,6 +6,12 @@ on:
     branches: master
     tags:
       - 'v*.*.*'
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
   pull_request:
     branches: master
     paths:
