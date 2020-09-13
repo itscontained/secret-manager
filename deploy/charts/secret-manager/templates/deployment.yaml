@@ -36,20 +36,43 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          - --health-port={{ .Values.service.port}}
+            {{- if .Values.healthCheck.enabled }}
+          - --health-port={{ .Values.healthCheck.port }}
+            {{- end }}
+            {{- if .Values.prometheus.enabled }}
+          - --metric-port={{ .Values.prometheus.service.port }}
+            {{- end }}
+            {{- if .Values.namespace }}
+          - --namespace={{ .Values.namespace }}
+            {{- end }}
+            {{- if .Values.apiServerHost }}
+          - --master={{ .Values.apiServerHost }}
+            {{- end }}
+            {{- if .Values.kubeConfig }}
+          - --kubeconfig={{ .Values.kubeConfig }}
+            {{- end }}
+            {{- if .Values.leaderElect }}
+          - --leader-elect=true
           - --leader-election-namespace={{ .Release.Namespace }}
-          - --leader-elect=false
+            {{- end }}
+          {{- range $arg := .Values.extraArgs }}
+          - {{ $arg }}
+          {{- end }}
+          {{- if .Values.prometheus.enabled }}
           ports:
-            - containerPort: 9321
+            - containerPort: {{.Values.prometheus.service.port }}
               protocol: TCP
+          {{- end }}
+          {{- if .Values.healthCheck.enabled }}
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.service.port}}
+              port: {{ .Values.healthCheck.port }}
           readinessProbe:
             httpGet:
               path: /ready
-              port: {{ .Values.service.port}}
+              port: {{ .Values.healthCheck.port }}
+          {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

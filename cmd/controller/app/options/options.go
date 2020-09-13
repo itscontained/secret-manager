@@ -50,51 +50,36 @@ type ControllerOptions struct {
 	MinTLSVersion string
 }
 
-var (
-	defaultEnabledControllers = make([]string, 0)
-)
-
 func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&s.APIServerHost, "master", "", ""+
-		"Optional apiserver host address to connect to. If not specified, autoconfiguration "+
-		"will be attempted.")
-	fs.StringVar(&s.Kubeconfig, "kubeconfig", "", ""+
-		"Paths to a kubeconfig. Only required if out-of-cluster.")
-	fs.StringVar(&s.Namespace, "namespace", "", ""+
+	fs.StringVar(&s.APIServerHost, "master", "",
+		"Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted.")
+	fs.StringVar(&s.Kubeconfig, "kubeconfig", "",
+		"Path to a kubeconfig. Only required if out-of-cluster.")
+	fs.StringVar(&s.Namespace, "namespace", "",
 		"If set, this limits the scope of secret-manager to a single namespace and ClusterSecretStores are disabled. "+
-		"If not specified, all namespaces will be watched")
-
-	fs.BoolVar(&s.LeaderElect, "leader-elect", true, ""+
+			"If not specified, all namespaces will be watched")
+	fs.BoolVar(&s.LeaderElect, "leader-elect", true,
 		"If true, secret-manager will perform leader election between instances to ensure no more "+
-		"than one instance of secret-manager operates at a time")
-	fs.StringVar(&s.LeaderElectionNamespace, "leader-election-namespace", "kube-system", ""+
+			"than one instance of secret-manager operates at a time")
+	fs.StringVar(&s.LeaderElectionNamespace, "leader-election-namespace", "kube-system",
 		"Namespace used to perform leader election. Only used if leader election is enabled")
-	fs.DurationVar(&s.LeaderElectionLeaseDuration, "leader-election-lease-duration", 60*time.Second, ""+
+	fs.DurationVar(&s.LeaderElectionLeaseDuration, "leader-election-lease-duration", 60*time.Second,
 		"The duration that non-leader candidates will wait after observing a leadership "+
-		"renewal until attempting to acquire leadership of a led but unrenewed leader "+
-		"slot. This is effectively the maximum duration that a leader can be stopped "+
-		"before it is replaced by another candidate. This is only applicable if leader "+
-		"election is enabled.")
-	fs.DurationVar(&s.LeaderElectionRenewDeadline, "leader-election-renew-deadline", 45*time.Second, ""+
+			"renewal until attempting to acquire leadership of a led but un-renewed leader "+
+			"slot. This is effectively the maximum duration that a leader can be stopped "+
+			"before it is replaced by another candidate. This is only applicable if leader "+
+			"election is enabled.")
+	fs.DurationVar(&s.LeaderElectionRenewDeadline, "leader-election-renew-deadline", 45*time.Second,
 		"The interval between attempts by the acting master to renew a leadership slot "+
-		"before it stops leading. This must be less than or equal to the lease duration. "+
-		"This is only applicable if leader election is enabled.")
-	fs.DurationVar(&s.LeaderElectionRetryPeriod, "leader-election-retry-period", 15*time.Second, ""+
+			"before it stops leading. This must be less than or equal to the lease duration. "+
+			"This is only applicable if leader election is enabled.")
+	fs.DurationVar(&s.LeaderElectionRetryPeriod, "leader-election-retry-period", 15*time.Second,
 		"The duration the clients should wait between attempting acquisition and renewal "+
-		"of a leadership. This is only applicable if leader election is enabled.")
-
-	fs.StringSliceVar(&s.EnabledControllers, "controllers", defaultEnabledControllers, ""+
-		"The set of controllers to enable.")
-
-	fs.IntVar(&s.WebhookPort, "webhook-port", 8443, ""+
-		"The port number to listen on for webhook connections.")
-	fs.IntVar(&s.HealthPort, "health-port", 8400, ""+
+			"of a leadership. This is only applicable if leader election is enabled.")
+	fs.IntVar(&s.HealthPort, "health-port", 8400,
 		"The port number to listen on for health connections.")
-	fs.IntVar(&s.MetricPort, "metric-port", 9321, ""+
+	fs.IntVar(&s.MetricPort, "metric-port", 9321,
 		"The port number that the metrics endpoint should listen on.")
-
-	fs.StringVar(&s.TLSCertDir, "tls-cert-dir", "", ""+
-		"The path to TLS certificate and private key on disk.")
 }
 
 func (s *ControllerOptions) Validate() error {

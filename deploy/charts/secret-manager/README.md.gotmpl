@@ -1,0 +1,32 @@
+{{- $valuesYAML := "https://github.com/itscontained/secret-manager/blob/master/deploy/charts/secret-manager/values.yaml" -}}
+{{- $chartRepo := "https://charts.itscontained.io" -}}
+{{- $org := "itscontained" -}}
+{{ template "chart.header" . }}
+{{ template "chart.typeBadge" . }}{{ template "chart.versionBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## TL;DR
+```console
+$ helm repo add {{ $org }} {{ $chartRepo }}
+$ helm install {{ $org }}/{{ template "chart.name" . }}
+```
+
+## Installing the Chart
+To install the chart with the release name `{{ template "chart.name" . }}`:
+```console
+helm install {{ template "chart.name" . }} {{ $org }}/{{ template "chart.name" . }}
+```
+
+## Uninstalling the Chart
+To uninstall the `{{ template "chart.name" . }}` deployment:
+```console
+helm uninstall {{ template "chart.name" . }}
+```
+The command removes all the Kubernetes components associated with the chart and deletes the release.
+
+## Configuration
+Read through the {{ template "chart.name" . }} [values.yaml]({{ $valuesYAML }})
+file. It has several commented out suggested values.
+
+{{ template "chart.valuesSection" . }}

@@ -12,14 +12,27 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# apiServerHost -- Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted
+apiServerHost: ""
+# kubeConfig -- Path to a kubeconfig. Only required if out-of-cluster
+kubeConfig: ""
+# namespace -- If set, this limits the scope of secret-manager to a single namespace and
+# ClusterSecretStores are disabled. If not specified, all namespaces will be watched
+namespace: ""
+# leaderElect -- If true, secret-manager will perform leader election between instances to ensure no more
+# than one instance of secret-manager operates at a time
+leaderElect: true
+
 serviceAccount:
-  # Specifies whether a service account should be created
+  # serviceAccount.create -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # serviceAccount.annotations -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # serviceAccount.name -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+extraArgs: []
 
 rbac:
   create: true
@@ -37,14 +50,17 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-service:
-  type: ClusterIP
+healthCheck:
+  enabled: true
   port: 8400
 
 prometheus:
-  enabled: true
-  servicemonitor:
-    enabled: false
+  enabled: false
+  # prometheus default annotations will be added, any annotations below will be additional
+  service:
+    annotations: {}
+    labels: {}
+    port: 9321
 
 resources: {}
   # requests:
