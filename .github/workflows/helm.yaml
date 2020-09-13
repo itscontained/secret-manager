@@ -8,8 +8,7 @@ on:
     branches: master
     paths:
       - 'deploy/charts/**'
-    paths-ignore:
-      - 'deploy/charts/secret-manager/README.md'
+      - '!deploy/charts/secret-manager/README.md'
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
