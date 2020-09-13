@@ -81,9 +81,12 @@ docker-build-kind-deploy: docker-build crds-to-chart ## copy
 	kubie ctx kind-test --namespace kube-system
 	helm upgrade secret-manager $(HELM_DIR)/. -f values.yaml --set image.tag=$(IMG_TAG),image.pullPolicy=IfNotPresent,installCRDs=true --namespace kube-system --install
 
-
 docker-push: ## Push the docker image
 	docker push ${IMG}
+
+helm-docs: ## Generate helm docs
+	cd $(HELM_DIR); \
+	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:latest
 
 # find or download controller-gen
 # download controller-gen if necessary

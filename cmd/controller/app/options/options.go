@@ -80,8 +80,6 @@ func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 	fs.DurationVar(&s.LeaderElectionRetryPeriod, "leader-election-retry-period", 15*time.Second,
 		"The duration the clients should wait between attempting acquisition and renewal "+
 			"of a leadership. This is only applicable if leader election is enabled.")
-	fs.StringSliceVar(&s.EnabledControllers, "controllers", defaultEnabledControllers,
-		"The set of controllers to enable.")
 	fs.IntVar(&s.HealthPort, "health-port", 8400,
 		"The port number to listen on for health connections.")
 	fs.IntVar(&s.MetricPort, "metric-port", 9321,

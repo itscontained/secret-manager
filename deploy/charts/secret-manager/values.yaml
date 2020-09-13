@@ -12,44 +12,27 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted
+# apiServerHost -- Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted
 apiServerHost: ""
-# Path to a kubeconfig. Only required if out-of-cluster
+# kubeConfig -- Path to a kubeconfig. Only required if out-of-cluster
 kubeConfig: ""
-# If set, this limits the scope of secret-manager to a single namespace and
+# namespace -- If set, this limits the scope of secret-manager to a single namespace and
 # ClusterSecretStores are disabled. If not specified, all namespaces will be watched
 namespace: ""
-# Leader Election configuration
-leaderConfig:
-  # If true, secret-manager will perform leader election between instances to ensure no more
-  # than one instance of secret-manager operates at a time
-  elect: true
-  # Namespace used to perform leader election. Only used if leader election is enabled
-  namespace: "kube-system"
-  # The duration in seconds that non-leader candidates will wait after observing a leadership
-  # renewal until attempting to acquire leadership of a led but unrenewed leader
-  # slot. This is effectively the maximum duration that a leader can be stopped
-  # before it is replaced by another candidate. This is only applicable if leader
-  # election is enabled.
-  leaseDuration: 60
-  # The interval between attempts by the acting master to renew a leadership slot
-  # before it stops leading. This must be less than or equal to the lease duration.
-  # This is only applicable if leader election is enabled.
-  renewDeadline: 45
-  # The duration the clients should wait between attempting acquisition and renewal
-  # of a leadership. This is only applicable if leader election is enabled.
-  retryPeriod: 15
-# The set of controllers to enable
-defaultEnabledControllers: ""
+# leaderElect -- If true, secret-manager will perform leader election between instances to ensure no more
+# than one instance of secret-manager operates at a time
+leaderElect: true
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # serviceAccount.create -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # serviceAccount.annotations -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # serviceAccount.name -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+extraArgs: []
 
 rbac:
   create: true

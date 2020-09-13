@@ -22,9 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
-      serviceAccountName: {{ .Values.serviceAccount.name | default (include "secret-manager.serviceAccountName" .) }}
-      {{- end }}
+      serviceAccountName: {{ include "secret-manager.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -53,15 +51,11 @@ spec:
             {{- if .Values.kubeConfig }}
           - --kubeconfig={{ .Values.kubeConfig }}
             {{- end }}
-            {{- if .Values.leaderConfig.elect }}
+            {{- if .Values.leaderElect }}
           - --leader-elect=true
-          - --leader-election-namespace={{ .Values.leaderConfig.namespace }}
-          - --leader-election-lease-duration={{ .Values.leaderConfig.leaseDuration }}
-          - --leader-election-renew-deadline={{ .Values.leaderConfig.renewDeadline }}
-          - --leader-election-retry-period={{ .Values.leaderConfig.retryPeriod }}
             {{- end }}
-            {{- if .Values.defaultEnabledControllers }}
-          - --controllers={{ .Values.defaultEnabledControllers }}
+          {{- range $arg := .Values.extraArgs }}
+          - {{ $arg }}
           {{- end }}
           {{- if .Values.prometheus.enabled }}
           ports:
