@@ -22,7 +22,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "secret-manager.serviceAccountName" . }}
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default include "secret-manager.serviceAccountName" . }}
+      {{- end }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -36,20 +38,46 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-          - --health-port={{ .Values.service.port}}
-          - --leader-election-namespace={{ .Release.Namespace }}
-          - --leader-elect=false
+            {{- if .Values.healthCheck.enabled }}
+          - --health-port={{ .Values.healthCheck.port }}
+            {{- end }}
+            {{- if .Values.prometheus.enabled }}
+          - --metric-port={{ .Values.prometheus.service.port }}
+            {{- end }}
+            {{- if .Values.namespace }}
+          - --namespace={{ .Values.namespace }}
+            {{- end }}
+            {{- if .Values.apiServerHost }}
+          - --master={{ .Values.apiServerHost }}
+            {{- end }}
+            {{- if .Values.kubeConfig }}
+          - --kubeconfig={{ .Values.kubeConfig }}
+            {{- end }}
+            {{- if .Values.leaderConfig.elect }}
+          - --leader-elect=true
+          - --leader-election-namespace={{ .Values.leaderConfig.namespace }}
+          - --leader-election-lease-duration={{ .Values.leaderConfig.leaseDuration }}
+          - --leader-election-renew-deadline={{ .Values.leaderConfig.renewDeadline }}
+          - --leader-election-retry-period={{ .Values.leaderConfig.retryPeriod }}
+            {{- end }}
+            {{- if .Values.defaultEnabledControllers }}
+          - --controllers={{ .Values.defaultEnabledControllers }}
+          {{- end }}
+          {{- if .Values.prometheus.enabled }}
           ports:
-            - containerPort: 9321
+            - containerPort: {{.Values.prometheus.service.port }}
               protocol: TCP
+          {{- end }}
+          {{- if .Values.healthCheck.enabled }}
           livenessProbe:
             httpGet:
               path: /health
-              port: {{ .Values.service.port}}
+              port: {{ .Values.healthCheck.port }}
           readinessProbe:
             httpGet:
               path: /ready
-              port: {{ .Values.service.port}}
+              port: {{ .Values.healthCheck.port }}
+          {{- end }}
           {{- with .Values.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
