@@ -49,8 +49,8 @@ jobs:
     steps:
       - name: Configure Git
         run: |
-          git config --global user.name "${{ env.GHCR_USERNAME }}"
-          git config --global user.email "${{ env.GHCR_USERNAME }}@users.noreply.github.com"
+          git config --global user.name "${{ secrets.GHCR_USERNAME }}"
+          git config --global user.email "${{ secrets.GHCR_USERNAME }}@users.noreply.github.com"
       - name: Checkout secret-manger
         uses: actions/checkout@v2
         with:
@@ -58,7 +58,7 @@ jobs:
       - name: Checkout Chart Repo
         uses: actions/checkout@v2
         with:
-          token: ${{ env.GHCR_PASSWORD }}
+          token: ${{ secrets.GHCR_PASSWORD }}
           repository: "itscontained/charts"
           ref: gh-pages
           path: charts
