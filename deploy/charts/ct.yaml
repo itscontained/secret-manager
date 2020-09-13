@@ -1,5 +1,5 @@
 helm-extra-args: --timeout 600s
 chart-dirs:
-  - deploy/charts
+  - deploy/charts/secret-manager
 chart-repos:
   - itscontained=https://charts.itscontained.io
