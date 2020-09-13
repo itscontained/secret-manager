@@ -50,10 +50,6 @@ type ControllerOptions struct {
 	MinTLSVersion string
 }
 
-var (
-	defaultEnabledControllers = make([]string, 0)
-)
-
 func (s *ControllerOptions) InitFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.APIServerHost, "master", "",
 		"Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted.")
