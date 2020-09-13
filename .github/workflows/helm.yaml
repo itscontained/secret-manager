@@ -72,16 +72,12 @@ jobs:
           wget https://github.com/helm/chart-releaser/releases/download/v1.0.0/chart-releaser_1.0.0_linux_amd64.tar.gz
           tar xzvf chart-releaser_1.0.0_linux_amd64.tar.gz cr
       - name: Copy CRDs to chart
-        run: |
-          cd secret-manager
-          make crds-to-chart
+        run: cd secret-manager && make crds-to-chart
       - name: Generate Helm README
-        run: |
-          make helm-docs
-          cd ../
+        run: cd secret-manager && make helm-docs
       - name: Release Chart
         run: |
-          sed -i 's/0.0.0/${GITHUB_REF#refs/tags/v}/' deploy/charts/secret-manager/Chart.yaml
+          sed -i 's/0.0.0/${GITHUB_REF#refs/tags/v}/' secret-manager/deploy/charts/secret-manager/Chart.yaml
           helm package secret-manager/deploy/charts/secret-manager/ --destination .cr-release-packages
           ./cr upload -t ${GITHUB_PAT} && ./cr index
           cd charts/ && git add . && git commit -m "release chart" && git push
