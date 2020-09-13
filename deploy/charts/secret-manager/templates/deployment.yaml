@@ -53,6 +53,7 @@ spec:
             {{- end }}
             {{- if .Values.leaderElect }}
           - --leader-elect=true
+          - --leader-election-namespace={{ .Release.Namespace }}
             {{- end }}
           {{- range $arg := .Values.extraArgs }}
           - {{ $arg }}
