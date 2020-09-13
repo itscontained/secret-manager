@@ -1,5 +1,4 @@
 name: Chart
-
 on:
   push:
     tags:
@@ -11,6 +10,7 @@ on:
     paths:
       - 'deploy/charts/**'
       - '!deploy/charts/secret-manager/README.md.gotmpl'
+  workflow_dispatch:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
