@@ -1,4 +1,4 @@
-name: Release Container
+name: Container
 on:
   schedule:
     - cron: '0 10 * * *' # everyday at 10am

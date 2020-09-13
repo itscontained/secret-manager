@@ -42,9 +42,6 @@ leaderConfig:
 # The set of controllers to enable
 defaultEnabledControllers: ""
 
-
-
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
