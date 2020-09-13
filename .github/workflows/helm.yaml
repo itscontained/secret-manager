@@ -20,7 +20,9 @@ jobs:
           git fetch --prune --unshallow;
           echo ::set-env name=commitmsg::$(git log --format=%B -n 1 ${{ github.event.after }})
       - name: Fix appversion for tests
-        run: sed -i 's/%%APPVERSION%%/1.2.3/' deploy/charts/secret-manager/Chart.yaml
+        run: |
+          LASTTAG=$(git describe --abbrev=0 --tags)
+          sed -i "s/0.0.0/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
       - name: lint
         id: lint
         uses: helm/chart-testing-action@v1.0.0
