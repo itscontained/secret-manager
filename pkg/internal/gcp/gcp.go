@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"github.com/go-logr/logr"
 	"google.golang.org/api/option"
 	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 
@@ -39,17 +40,19 @@ var _ store.Client = &GCP{}
 type GCP struct {
 	kubeClient ctrlclient.Client
 	store      smv1alpha1.GenericStore
-
-	client *secretmanager.Client
+	log        logr.Logger
+	client     *secretmanager.Client
 }
 
-func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
+func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, log logr.Logger) (store.Client, error) {
 	g := &GCP{
 		kubeClient: kubeClient,
 		store:      store,
+		log:        log,
 	}
 	err := g.newClient(ctx)
 	if err != nil {
+		log.Error(err, "could not create new gcp client")
 		return nil, err
 	}
 	return g, nil
@@ -64,8 +67,7 @@ func (g *GCP) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", data)
-	return data["data"], nil
+	return data[*ref.Name], nil
 }
 
 func (g *GCP) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
@@ -77,7 +79,7 @@ func (g *GCP) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) 
 }
 
 func (g *GCP) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
-	projectId := g.store.GetSpec().GCP.AuthSecretRef.ProjectID
+	projectId := g.store.GetSpec().GCP.ProjectID
 	name := id
 	if !strings.HasPrefix(id, "projects/") && projectId != nil {
 		name = fmt.Sprintf("projects/%s/secrets/%s/versions/%s", *projectId, id, version)
@@ -89,11 +91,10 @@ func (g *GCP) readSecret(ctx context.Context, id, version string) (map[string][]
 	}
 	data := string(resp.Payload.Data)
 	secretData := make(map[string][]byte)
-	secretData["data"] = []byte(data)
+	secretData[id] = []byte(data)
 	return secretData, nil
 }
 
-// secret name test-secret
 func (g *GCP) newClient(ctx context.Context) error {
 	var err error
 	var clientOption option.ClientOption
@@ -112,8 +113,7 @@ func (g *GCP) newClient(ctx context.Context) error {
 		clientOption = option.WithCredentialsFile(*spec.AuthSecretRef.File)
 	}
 	scoped := true
-	fmt.Print(g.store.GetTypeMeta().String())
-	if g.store.GetTypeMeta().String() == "ClusterSecretStore" {
+	if g.store.GetTypeMeta().Kind == smv1alpha1.ClusterSecretStoreKind {
 		scoped = false
 	}
 	if spec.AuthSecretRef.JSON != nil {

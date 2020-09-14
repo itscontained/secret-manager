@@ -24,6 +24,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/go-logr/logr"
 	vault "github.com/hashicorp/vault/api"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
@@ -49,15 +50,16 @@ type Vault struct {
 	kubeClient ctrlclient.Client
 	store      smv1alpha1.GenericStore
 	namespace  string
-
-	client Client
+	log        logr.Logger
+	client     Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
+func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string, log logr.Logger) (store.Client, error) {
 	v := &Vault{
 		kubeClient: kubeclient,
 		namespace:  namespace,
 		store:      store,
+		log:        log,
 	}
 
 	cfg, err := v.newConfig()

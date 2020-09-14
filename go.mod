@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v0.24.0
 	github.com/go-logr/logr v0.2.1-0.20200730175230-ee2de8da5be6
 	github.com/go-logr/zapr v0.2.0 // indirect
+	github.com/golang/protobuf v1.4.2
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/imdario/mergo v0.3.11
 	github.com/jmespath/go-jmespath v0.3.0 // indirect

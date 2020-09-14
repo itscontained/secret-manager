@@ -17,6 +17,8 @@ package store
 import (
 	"context"
 
+	"github.com/go-logr/logr"
+
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,5 +33,5 @@ type Client interface {
 
 // Factory returns a StoreClient
 type Factory interface {
-	New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string) (Client, error)
+	New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string, log logr.Logger) (Client, error)
 }

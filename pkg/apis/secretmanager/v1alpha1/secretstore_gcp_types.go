@@ -18,19 +18,19 @@ import smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 
 // Configures an store to sync secrets using GCP Secret Manager
 type GCPStore struct {
+	// ProjectID is a convenience string to allow the shortening of secret paths.
+	// When set, the prefix projects/<ProjectID> can be removed from the name
+	ProjectID *string `json:"projectId,omitempty"`
 	// Auth configures how secret-manager authenticates with GCP Secret Manager.
 	// +optional
 	AuthSecretRef *GCPAuth `json:"authSecretRef,omitempty"`
 }
 
 // Configuration used to authenticate with GCP.
-// Any  of `ProjectID`, `JSON` or `File` can be specified. If not set we fall-back to using
+// Either of `JSON` or `File` can be specified. If not set we fall-back to using
 // `GOOGLE_APPLICATION_CREDENTIALS` or the default service account of the compute engine
 // see: https://cloud.google.com/docs/authentication/production
 type GCPAuth struct {
-	// ProjectID is a convenience string to allow the shortening of secret paths.
-	// When set, the prefix projects/<ProjectID> can be removed from the name
-	ProjectID *string `json:"projectId,omitempty"`
 	// The JSON secret key selector is used for authentication. If not set we fall-back to using
 	// `GOOGLE_APPLICATION_CREDENTIALS` or the default service account of the compute engine
 	// see: https://cloud.google.com/docs/authentication/production

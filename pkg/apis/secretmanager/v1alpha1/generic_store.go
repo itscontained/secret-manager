@@ -43,7 +43,10 @@ var _ GenericStore = &SecretStore{}
 var _ GenericStore = &ClusterSecretStore{}
 
 func (c *ClusterSecretStore) GetTypeMeta() *metav1.TypeMeta {
-	return &c.TypeMeta
+	return &metav1.TypeMeta{
+		Kind:       ClusterSecretStoreKind,
+		APIVersion: ClusterSecretStoreKindAPIVersion,
+	}
 }
 
 func (c *ClusterSecretStore) GetObjectMeta() *metav1.ObjectMeta {
@@ -60,7 +63,10 @@ func (c *ClusterSecretStore) Copy() GenericStore {
 }
 
 func (c *SecretStore) GetTypeMeta() *metav1.TypeMeta {
-	return &c.TypeMeta
+	return &metav1.TypeMeta{
+		Kind:       SecretStoreKind,
+		APIVersion: SecretStoreKindAPIVersion,
+	}
 }
 func (c *SecretStore) GetObjectMeta() *metav1.ObjectMeta {
 	return &c.ObjectMeta

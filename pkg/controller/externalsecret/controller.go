@@ -87,7 +87,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, s, r.Client, r.Reader, req.Namespace)
+		storeClient, err := r.storeFactory.New(ctx, s, r.Client, r.Reader, req.Namespace, r.Log)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
@@ -190,25 +190,22 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 }
 
 func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1alpha1.ExternalSecret) (smv1alpha1.GenericStore, error) {
-	if extSecret.Kind == smv1alpha1.ClusterSecretStoreKind {
-		clusterStore := &smv1alpha1.ClusterSecretStore{}
-		ref := types.NamespacedName{
-			Name: extSecret.Spec.StoreRef.Name,
-		}
-		if err := r.Reader.Get(ctx, ref, clusterStore); err != nil {
-			return nil, fmt.Errorf("ClusterSecretStore %q: %w", ref.Name, err)
-		}
-		return clusterStore, nil
-	}
-	namespacedStore := &smv1alpha1.SecretStore{}
+	var secretStore smv1alpha1.GenericStore
+	storeType := "ClusterSecretStore"
 	ref := types.NamespacedName{
-		Namespace: extSecret.Namespace,
-		Name:      extSecret.Spec.StoreRef.Name,
+		Name: extSecret.Spec.StoreRef.Name,
 	}
-	if err := r.Reader.Get(ctx, ref, namespacedStore); err != nil {
-		return nil, fmt.Errorf("SecretStore %q: %w", ref.Name, err)
+	if extSecret.Spec.StoreRef.Kind == smv1alpha1.ClusterSecretStoreKind {
+		secretStore = &smv1alpha1.ClusterSecretStore{}
+	} else {
+		secretStore = &smv1alpha1.SecretStore{}
+		ref.Namespace = extSecret.Namespace
+		storeType = "SecretStore"
 	}
-	return namespacedStore, nil
+	if err := r.Reader.Get(ctx, ref, secretStore); err != nil {
+		return nil, fmt.Errorf("%s %q: %w", storeType, ref.Name, err)
+	}
+	return secretStore, nil
 }
 
 func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {

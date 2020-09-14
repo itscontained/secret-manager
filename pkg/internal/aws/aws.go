@@ -25,6 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/go-logr/logr"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
@@ -42,14 +43,15 @@ var _ store.Client = &AWS{}
 type AWS struct {
 	kubeClient ctrlclient.Client
 	store      smv1alpha1.GenericStore
-
-	client *secretsmanager.Client
+	log        logr.Logger
+	client     *secretsmanager.Client
 }
 
-func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
+func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, log logr.Logger) (store.Client, error) {
 	v := &AWS{
 		kubeClient: kubeClient,
 		store:      store,
+		log:        log,
 	}
 
 	cfg, err := v.newConfig(ctx)
