@@ -20,8 +20,9 @@ import (
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/aws"
-	store "github.com/itscontained/secret-manager/pkg/internal/store"
-	vault "github.com/itscontained/secret-manager/pkg/internal/vault"
+	"github.com/itscontained/secret-manager/pkg/internal/gcp"
+	"github.com/itscontained/secret-manager/pkg/internal/store"
+	"github.com/itscontained/secret-manager/pkg/internal/vault"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -30,21 +31,20 @@ var _ store.Factory = &Default{}
 
 type Default struct{}
 
-func (f *Default) New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string) (store.Client, error) {
-	storeSpec := store.GetSpec()
-	if storeSpec.Vault != nil {
-		vaultClient, err := vault.New(ctx, kubeClient, store, namespace)
-		if err != nil {
-			return nil, fmt.Errorf("unable to setup Vault client: %w", err)
-		}
-		return vaultClient, nil
-	} else if storeSpec.AWS != nil {
-		awsClient, err := aws.New(ctx, kubeClient, store)
-		if err != nil {
-			return nil, fmt.Errorf("unable to setup AWS client: %w", err)
-		}
-		return awsClient, nil
+func (f *Default) New(ctx context.Context, genericStore smv1alpha1.GenericStore, kubeClient client.Client, _ client.Reader, namespace string) (store.Client, error) {
+	var err error
+	var storeClient store.Client
+	if genericStore.GetSpec().Vault != nil {
+		storeClient, err = vault.New(ctx, kubeClient, genericStore, namespace)
+	} else if genericStore.GetSpec().AWS != nil {
+		storeClient, err = aws.New(ctx, kubeClient, genericStore)
+	} else if genericStore.GetSpec().GCP != nil {
+		storeClient, err = gcp.New(ctx, kubeClient, genericStore)
+	} else {
+		return nil, fmt.Errorf("SecretStore %q does not have a valid client", genericStore.GetName())
 	}
-
-	return nil, fmt.Errorf("SecretStore %q does not have a valid client", store.GetName())
+	if err != nil {
+		return nil, fmt.Errorf("unable to setup SecretStore client: %w", err)
+	}
+	return storeClient, nil
 }

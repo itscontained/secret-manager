@@ -10,9 +10,13 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/ cmd/
-COPY pkg/ pkg/
+COPY cmd cmd/
+COPY pkg pkg/
 COPY Makefile Makefile
+
+# Copy the dirs for make
+COPY build build/
+COPY .git .git/
 
 # Build
 RUN make build

@@ -29,6 +29,9 @@ type SecretStoreSpec struct {
 	// AWS configures this store to sync secrets using AWS SecretManager
 	// +optional
 	AWS *AWSStore `json:"aws,omitempty"`
+	// GCP configures this store to sync secrets using GCP Secret Manager
+	// +optional
+	GCP *GCPStore `json:"gcp,omitempty"`
 }
 
 type SecretStoreStatus struct {

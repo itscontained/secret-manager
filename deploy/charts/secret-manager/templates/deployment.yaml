@@ -54,6 +54,8 @@ spec:
             {{- if .Values.leaderElect }}
           - --leader-elect=true
           - --leader-election-namespace={{ .Release.Namespace }}
+            {{- else }}
+          - --leader-elect=false
             {{- end }}
           {{- range $arg := .Values.extraArgs }}
           - {{ $arg }}

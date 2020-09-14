@@ -66,8 +66,8 @@ manifests: controller-gen ## Generate CRD manifests
 generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
 
-docker-build: manifests generate test build ## Build the docker image
-	docker build . -t $(IMG)
+docker-build: manifests generate test ## Build the docker image
+	docker build . -t $(IMG) --load
 
 crds-to-chart: ## copy crds to helm chart directory
 	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
@@ -79,7 +79,9 @@ docker-build-kind-deploy: docker-build crds-to-chart ## copy
 	kind load docker-image ${IMG} --name test
 	kind export kubeconfig --name test --kubeconfig $(HOME)/.kube/configs/kind-test.yaml
 	kubie ctx kind-test --namespace kube-system
-	helm upgrade secret-manager $(HELM_DIR)/. -f values.yaml --set image.tag=$(IMG_TAG),image.pullPolicy=IfNotPresent,installCRDs=true --namespace kube-system --install
+	helm upgrade secret-manager $(HELM_DIR)/. -f  $(HELM_DIR)/values.yaml \
+	--set image.tag=$(IMG_TAG),image.pullPolicy=IfNotPresent,installCRDs=true,leaderElect=false \
+	--namespace kube-system --install
 
 docker-push: ## Push the docker image
 	docker push ${IMG}
