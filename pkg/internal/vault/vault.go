@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+
 	vault "github.com/hashicorp/vault/api"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"

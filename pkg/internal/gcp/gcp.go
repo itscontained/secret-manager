@@ -20,13 +20,16 @@ import (
 	"strings"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+
 	"github.com/go-logr/logr"
-	"google.golang.org/api/option"
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/internal/store"
+
+	"google.golang.org/api/option"
+
+	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -79,10 +82,10 @@ func (g *GCP) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) 
 }
 
 func (g *GCP) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
-	projectId := g.store.GetSpec().GCP.ProjectID
+	projectID := g.store.GetSpec().GCP.ProjectID
 	name := id
-	if !strings.HasPrefix(id, "projects/") && projectId != nil {
-		name = fmt.Sprintf("projects/%s/secrets/%s/versions/%s", *projectId, id, version)
+	if !strings.HasPrefix(id, "projects/") && projectID != nil {
+		name = fmt.Sprintf("projects/%s/secrets/%s/versions/%s", *projectID, id, version)
 	}
 	req := &secretmanagerpb.AccessSecretVersionRequest{Name: name}
 	resp, err := g.client.AccessSecretVersion(ctx, req)
@@ -117,8 +120,8 @@ func (g *GCP) newClient(ctx context.Context) error {
 		scoped = false
 	}
 	if spec.AuthSecretRef.JSON != nil {
-		data, err := g.secretKeyRef(ctx, g.store.GetNamespace(), *spec.AuthSecretRef.JSON, scoped)
-		if err != nil {
+		data, e := g.secretKeyRef(ctx, g.store.GetNamespace(), *spec.AuthSecretRef.JSON, scoped)
+		if e != nil {
 			return err
 		}
 		clientOption = option.WithCredentialsJSON([]byte(data))

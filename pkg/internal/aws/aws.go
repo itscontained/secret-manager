@@ -25,6 +25,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+
 	"github.com/go-logr/logr"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
