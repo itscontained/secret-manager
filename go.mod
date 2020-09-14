@@ -7,7 +7,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v0.24.0
 	github.com/go-logr/logr v0.2.1-0.20200730175230-ee2de8da5be6
 	github.com/go-logr/zapr v0.2.0 // indirect
-	github.com/golang/protobuf v1.4.2
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/imdario/mergo v0.3.11
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
@@ -17,7 +16,6 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	go.uber.org/zap v1.15.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.30.0
 	google.golang.org/genproto v0.0.0-20200911024640-645f7a48b24f
 	k8s.io/api v0.18.6
