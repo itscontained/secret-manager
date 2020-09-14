@@ -1,6 +1,0 @@
-helm-extra-args: --timeout 600s
-check-version-increment: false
-chart-dirs:
-  - deploy/charts
-chart-repos:
-  - itscontained=https://charts.itscontained.io

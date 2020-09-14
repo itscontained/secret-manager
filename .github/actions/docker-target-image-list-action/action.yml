@@ -44,4 +44,3 @@ runs:
           done
         done
         echo ::set-output name=fully-qualified-target-images::${FQTI}
-

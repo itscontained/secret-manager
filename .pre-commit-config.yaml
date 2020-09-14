@@ -1,0 +1,21 @@
+# See https://pre-commit.com for more information
+repos:
+  - repo: local
+    hooks:
+      - id: ct-lint
+        name: "Chart Test: Lint"
+        language: docker_image
+        pass_filenames: false
+        types: ['file']
+        files: '^deploy/charts/.*(\.ya?ml|\.tpl|\.helmignore|NOTES.txt)'
+        entry: -u 0 quay.io/helmpack/chart-testing:v3.0.0 ct lint --config .ct.yaml
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+        exclude: ^deploy/charts/secret-manager/templates/
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
