@@ -6,8 +6,11 @@ SecretStores.
 ### Supported
 * Hashicorp Vault
 * AWS SecretManager
-### Planned
 * GCP Secret Manager
+
+### Planned
+* Azure Key Vault
+* Bitwarden
 
 ## Inspiration
 Inspired by the great work done by the contributors over at [godaddy/kubernetes-external-secrets][1] and

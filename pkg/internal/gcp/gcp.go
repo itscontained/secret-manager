@@ -16,10 +16,11 @@ package gcp
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strings"
 
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"google.golang.org/api/secretmanager/v1"
 
 	"github.com/go-logr/logr"
 
@@ -28,8 +29,6 @@ import (
 	"github.com/itscontained/secret-manager/pkg/internal/store"
 
 	"google.golang.org/api/option"
-
-	secretmanagerpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -44,7 +43,7 @@ type GCP struct {
 	kubeClient ctrlclient.Client
 	store      smv1alpha1.GenericStore
 	log        logr.Logger
-	client     *secretmanager.Client
+	client     *secretmanager.Service
 }
 
 func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, log logr.Logger) (store.Client, error) {
@@ -61,49 +60,51 @@ func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.Gen
 	return g, nil
 }
 
-func (g *GCP) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
+func (g *GCP) GetSecret(_ context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
 	version := "latest"
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	data, err := g.readSecret(ctx, *ref.Name, version)
+	data, err := g.readSecret(*ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
 	return data[*ref.Name], nil
 }
 
-func (g *GCP) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
+func (g *GCP) GetSecretMap(_ context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
 	version := "latest"
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	return g.readSecret(ctx, *ref.Name, version)
+	return g.readSecret(*ref.Name, version)
 }
 
-func (g *GCP) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
+func (g *GCP) readSecret(id, version string) (map[string][]byte, error) {
 	projectID := g.store.GetSpec().GCP.ProjectID
 	name := id
 	if !strings.HasPrefix(id, "projects/") && projectID != nil {
 		name = fmt.Sprintf("projects/%s/secrets/%s/versions/%s", *projectID, id, version)
 	}
-	req := &secretmanagerpb.AccessSecretVersionRequest{Name: name}
-	resp, err := g.client.AccessSecretVersion(ctx, req)
+	resp, err := g.client.Projects.Secrets.Versions.Access(name).Do()
 	if err != nil {
 		return nil, err
 	}
-	data := string(resp.Payload.Data)
-	secretData := make(map[string][]byte)
-	secretData[id] = []byte(data)
-	return secretData, nil
+	data, err := base64.URLEncoding.DecodeString(resp.Payload.Data)
+	if err != nil {
+		return nil, err
+	}
+	return map[string][]byte{id: data}, nil
 }
 
 func (g *GCP) newClient(ctx context.Context) error {
+	g.log.V(1).Info("creating new gcp api client")
 	var err error
 	var clientOption option.ClientOption
-	spec := *g.store.GetSpec().GCP
+	spec := g.store.GetSpec().GCP
 	if spec.AuthSecretRef == nil {
-		g.client, err = secretmanager.NewClient(ctx)
+		g.log.V(1).Info("no authentication defined. using environment variables")
+		g.client, err = secretmanager.NewService(ctx)
 		if err != nil {
 			return err
 		}
@@ -113,34 +114,42 @@ func (g *GCP) newClient(ctx context.Context) error {
 		return fmt.Errorf("multiple authentication methods configured")
 	}
 	if spec.AuthSecretRef.File != nil {
+		g.log.V(1).Info("file authentication defined. using %s", *spec.AuthSecretRef.File)
 		clientOption = option.WithCredentialsFile(*spec.AuthSecretRef.File)
 	}
 	scoped := true
 	if g.store.GetTypeMeta().Kind == smv1alpha1.ClusterSecretStoreKind {
+		g.log.V(1).Info("removing namespace scope restriction")
 		scoped = false
 	}
 	if spec.AuthSecretRef.JSON != nil {
-		data, e := g.secretKeyRef(ctx, g.store.GetNamespace(), *spec.AuthSecretRef.JSON, scoped)
+		g.log.V(1).Info("JSON authentication defined")
+		namespace := g.store.GetNamespace()
+		if !scoped {
+			if spec.AuthSecretRef.JSON.Namespace == nil {
+				return fmt.Errorf("authsecretref namespace required when cluster-scoped")
+			}
+			namespace = *spec.AuthSecretRef.JSON.Namespace
+		}
+		data, e := g.secretKeyRef(ctx, namespace, *spec.AuthSecretRef.JSON)
 		if e != nil {
 			return err
 		}
 		clientOption = option.WithCredentialsJSON([]byte(data))
 	}
-	g.client, err = secretmanager.NewClient(ctx, clientOption)
+	g.client, err = secretmanager.NewService(ctx, clientOption)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (g *GCP) secretKeyRef(ctx context.Context, namespace string, secretRef smmeta.SecretKeySelector, scoped bool) (string, error) {
+func (g *GCP) secretKeyRef(ctx context.Context, namespace string, secretRef smmeta.SecretKeySelector) (string, error) {
+	g.log.V(1).Info("retrieving kubernetes secret", "name", secretRef.Name)
 	var secret corev1.Secret
 	ref := types.NamespacedName{
 		Namespace: namespace,
 		Name:      secretRef.Name,
-	}
-	if !scoped && secretRef.Namespace != nil {
-		ref.Namespace = *secretRef.Namespace
 	}
 	err := g.kubeClient.Get(ctx, ref, &secret)
 	if err != nil {

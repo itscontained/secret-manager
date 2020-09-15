@@ -20,7 +20,7 @@ import smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 type GCPStore struct {
 	// ProjectID is a convenience string to allow the shortening of secret paths.
 	// When set, the prefix projects/<ProjectID> can be removed from the name
-	ProjectID *string `json:"projectId,omitempty"`
+	ProjectID *string `json:"projectID,omitempty"`
 	// Auth configures how secret-manager authenticates with GCP Secret Manager.
 	// +optional
 	AuthSecretRef *GCPAuth `json:"authSecretRef,omitempty"`

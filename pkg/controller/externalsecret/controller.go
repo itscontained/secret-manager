@@ -190,6 +190,7 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 }
 
 func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1alpha1.ExternalSecret) (smv1alpha1.GenericStore, error) {
+	r.Log.V(1).Info("getting store configuration")
 	var secretStore smv1alpha1.GenericStore
 	storeType := "ClusterSecretStore"
 	ref := types.NamespacedName{
@@ -197,10 +198,12 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 	}
 	if extSecret.Spec.StoreRef.Kind == smv1alpha1.ClusterSecretStoreKind {
 		secretStore = &smv1alpha1.ClusterSecretStore{}
+		r.Log.V(1).Info("using ClusterSecretStore")
 	} else {
 		secretStore = &smv1alpha1.SecretStore{}
 		ref.Namespace = extSecret.Namespace
 		storeType = "SecretStore"
+		r.Log.V(1).Info("using SecretStore")
 	}
 	if err := r.Reader.Get(ctx, ref, secretStore); err != nil {
 		return nil, fmt.Errorf("%s %q: %w", storeType, ref.Name, err)

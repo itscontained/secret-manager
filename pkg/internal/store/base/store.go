@@ -38,10 +38,13 @@ func (f *Default) New(ctx context.Context, genericStore smv1alpha1.GenericStore,
 	var err error
 	var storeClient store.Client
 	if genericStore.GetSpec().Vault != nil {
+		log.V(1).Info("defining store as vault store")
 		storeClient, err = vault.New(ctx, kubeClient, genericStore, namespace, log)
 	} else if genericStore.GetSpec().AWS != nil {
+		log.V(1).Info("defining store as aws store")
 		storeClient, err = aws.New(ctx, kubeClient, genericStore, log)
 	} else if genericStore.GetSpec().GCP != nil {
+		log.V(1).Info("defining store as gcp store")
 		storeClient, err = gcp.New(ctx, kubeClient, genericStore, log)
 	} else {
 		return nil, fmt.Errorf("SecretStore %q does not have a valid client", genericStore.GetName())
