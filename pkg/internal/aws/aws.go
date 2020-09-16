@@ -48,7 +48,7 @@ type AWS struct {
 	client     *secretsmanager.Client
 }
 
-func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, log logr.Logger) (store.Client, error) {
+func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
 	v := &AWS{
 		kubeClient: kubeClient,
 		store:      store,

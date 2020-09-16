@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
+
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	fakestore "github.com/itscontained/secret-manager/pkg/internal/store/fake"
@@ -142,7 +144,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				Spec: spec,
 			}
 
-			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
+				smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return nil, fmt.Errorf("artificial test error")
 			})
 
@@ -211,7 +214,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				"key": base64Encode(testSecretData),
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
-			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
+				smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return storeFactory, nil
 			})
 
@@ -308,7 +312,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 			storeFactory.WithGetSecretMap(testSecretMap, nil)
 			storeFactory.WithGetSecret(testSecretData, nil)
-			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
+				smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return storeFactory, nil
 			})
 
@@ -396,7 +401,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 				"key1": base64Encode(testSecretData),
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
-			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
+				smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return storeFactory, nil
 			})
 
@@ -478,7 +484,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 
 			testSecretData := []byte("this-is-a-test-secret")
 			storeFactory.WithGetSecret(testSecretData, nil)
-			storeFactory.WithNew(func(context.Context, client.Client, smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
+			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
+				smv1alpha1.GenericStore, string) (*fakestore.Factory, error) {
 				return storeFactory, nil
 			})
 

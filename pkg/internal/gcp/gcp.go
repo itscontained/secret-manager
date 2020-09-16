@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/api/secretmanager/v1"
-
 	"github.com/go-logr/logr"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
@@ -29,6 +27,7 @@ import (
 	"github.com/itscontained/secret-manager/pkg/internal/store"
 
 	"google.golang.org/api/option"
+	"google.golang.org/api/secretmanager/v1"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -46,7 +45,7 @@ type GCP struct {
 	client     *secretmanager.Service
 }
 
-func New(ctx context.Context, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, log logr.Logger) (store.Client, error) {
+func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
 	g := &GCP{
 		kubeClient: kubeClient,
 		store:      store,
@@ -110,6 +109,7 @@ func (g *GCP) newClient(ctx context.Context) error {
 		}
 		return nil
 	}
+	// TODO: Validating Webhook Candidate
 	if spec.AuthSecretRef.JSON != nil && spec.AuthSecretRef.File != nil {
 		return fmt.Errorf("multiple authentication methods configured")
 	}

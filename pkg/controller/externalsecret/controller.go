@@ -87,7 +87,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, s, r.Client, r.Reader, req.Namespace, r.Log)
+		storeClient, err := r.storeFactory.New(ctx, r.Log, s, r.Client, r.Reader, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}

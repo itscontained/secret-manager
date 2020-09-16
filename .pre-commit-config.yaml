@@ -14,11 +14,16 @@ repos:
         language: system
         pass_filenames: false
         entry: make fmt
+      - id: make-lint
+        name: "make lint"
+        language: system
+        pass_filenames: false
+        entry: make lint
       - id: make-test
         name: "make test"
         language: system
         pass_filenames: false
-        entry: make lint
+        entry: make test
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:

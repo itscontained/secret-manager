@@ -34,18 +34,18 @@ var _ store.Factory = &Default{}
 
 type Default struct{}
 
-func (f *Default) New(ctx context.Context, genericStore smv1alpha1.GenericStore, kubeClient client.Client, _ client.Reader, namespace string, log logr.Logger) (store.Client, error) {
+func (f *Default) New(ctx context.Context, log logr.Logger, genericStore smv1alpha1.GenericStore, kubeClient client.Client, _ client.Reader, namespace string) (store.Client, error) {
 	var err error
 	var storeClient store.Client
 	if genericStore.GetSpec().Vault != nil {
 		log.V(1).Info("defining store as vault store")
-		storeClient, err = vault.New(ctx, kubeClient, genericStore, namespace, log)
+		storeClient, err = vault.New(ctx, log, kubeClient, genericStore, namespace)
 	} else if genericStore.GetSpec().AWS != nil {
 		log.V(1).Info("defining store as aws store")
-		storeClient, err = aws.New(ctx, kubeClient, genericStore, log)
+		storeClient, err = aws.New(ctx, log, kubeClient, genericStore)
 	} else if genericStore.GetSpec().GCP != nil {
 		log.V(1).Info("defining store as gcp store")
-		storeClient, err = gcp.New(ctx, kubeClient, genericStore, log)
+		storeClient, err = gcp.New(ctx, log, kubeClient, genericStore)
 	} else {
 		return nil, fmt.Errorf("SecretStore %q does not have a valid client", genericStore.GetName())
 	}

@@ -33,5 +33,5 @@ type Client interface {
 
 // Factory returns a StoreClient
 type Factory interface {
-	New(ctx context.Context, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string, log logr.Logger) (Client, error)
+	New(ctx context.Context, log logr.Logger, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string) (Client, error)
 }

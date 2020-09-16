@@ -55,9 +55,9 @@ type Vault struct {
 	client     Client
 }
 
-func New(ctx context.Context, kubeclient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string, log logr.Logger) (store.Client, error) {
+func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
 	v := &Vault{
-		kubeClient: kubeclient,
+		kubeClient: kubeClient,
 		namespace:  namespace,
 		store:      store,
 		log:        log,
