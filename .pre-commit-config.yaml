@@ -9,6 +9,21 @@ repos:
         types: ['file']
         files: '^deploy/charts/.*(\.ya?ml|\.tpl|\.helmignore|NOTES.txt)'
         entry: -u 0 quay.io/helmpack/chart-testing:v3.0.0 ct lint --config .ct.yaml
+      - id: make-fmt
+        name: "make fmt"
+        language: system
+        pass_filenames: false
+        entry: make fmt
+      - id: make-lint
+        name: "make lint"
+        language: system
+        pass_filenames: false
+        entry: make lint
+      - id: make-test
+        name: "make test"
+        language: system
+        pass_filenames: false
+        entry: make test
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:

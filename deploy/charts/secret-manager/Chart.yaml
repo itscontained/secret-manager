@@ -15,7 +15,6 @@ keywords:
   - crd
 home: https://github.com/itscontained/secret-manager
 sources:
-  - https://github.com/itscontained/secret-manager
   - https://hub.docker.com/r/itscontained/secret-manager
   - https://quay.io/repository/itscontained/secret-manager
   - https://github.com/orgs/itscontained/packages/container/secret-manager
@@ -24,3 +23,19 @@ maintainers:
     email: nick@cajun.pro
   - name: mcavoyk
     email: kellinmcavoy@gmail.com
+annotations:
+  artifacthub.io/operator: true
+  artifacthub.io/links: |
+    - name: Source Code
+      url: https://github.com/itscontained/secret-manager
+    - name: DockerHub Image
+      url: https://hub.docker.com/r/itscontained/secret-manager
+    - name: Quay.io Image
+      url: https://quay.io/repository/itscontained/secret-manager
+    - name: GHCR Image
+      url: https://github.com/orgs/itscontained/packages/container/secret-manager
+  artifacthub.io/maintainers: |
+    - name: Nicholas St. Germain
+      email: nick@cajun.pro
+    - name: Kellin McAvoy
+      email: kellinmcavoy@gmail.com
