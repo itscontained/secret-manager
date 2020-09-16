@@ -27,7 +27,7 @@ type GCPStore struct {
 }
 
 // Configuration used to authenticate with GCP.
-// Either of `JSON` or `File` can be specified. If not set we fall-back to using
+// Either of `JSON` or `FilePath` can be specified. If not set we fall-back to using
 // `GOOGLE_APPLICATION_CREDENTIALS` or the default service account of the compute engine
 // see: https://cloud.google.com/docs/authentication/production
 type GCPAuth struct {
@@ -36,9 +36,9 @@ type GCPAuth struct {
 	// see: https://cloud.google.com/docs/authentication/production
 	// +optional
 	JSON *smmeta.SecretKeySelector `json:"json,omitempty"`
-	// The File string is used for authentication using a gcp credentials json file. If not set we fall-back to using
-	// `GOOGLE_APPLICATION_CREDENTIALS` or the default service account of the compute engine
-	// see: https://cloud.google.com/docs/authentication/production
+	// The FilePath string is used for authentication using a gcp credentials json file.
+	// If not set we fall-back to using `GOOGLE_APPLICATION_CREDENTIALS` or the default service account of the
+	// compute engine see: https://cloud.google.com/docs/authentication/production
 	// +optional
-	File *string `json:"file,omitempty"`
+	FilePath *string `json:"filePath,omitempty"`
 }

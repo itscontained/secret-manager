@@ -110,12 +110,12 @@ func (g *GCP) newClient(ctx context.Context) error {
 		return nil
 	}
 	// TODO: Validating Webhook Candidate
-	if spec.AuthSecretRef.JSON != nil && spec.AuthSecretRef.File != nil {
+	if spec.AuthSecretRef.JSON != nil && spec.AuthSecretRef.FilePath != nil {
 		return fmt.Errorf("multiple authentication methods configured")
 	}
-	if spec.AuthSecretRef.File != nil {
-		g.log.V(1).Info("file authentication defined. using %s", *spec.AuthSecretRef.File)
-		clientOption = option.WithCredentialsFile(*spec.AuthSecretRef.File)
+	if spec.AuthSecretRef.FilePath != nil {
+		g.log.V(1).Info("file authentication defined. using %s", *spec.AuthSecretRef.FilePath)
+		clientOption = option.WithCredentialsFile(*spec.AuthSecretRef.FilePath)
 	}
 	scoped := true
 	if g.store.GetTypeMeta().Kind == smv1alpha1.ClusterSecretStoreKind {

@@ -254,8 +254,8 @@ func (in *GCPAuth) DeepCopyInto(out *GCPAuth) {
 		*out = new(v1.SecretKeySelector)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.File != nil {
-		in, out := &in.File, &out.File
+	if in.FilePath != nil {
+		in, out := &in.FilePath, &out.FilePath
 		*out = new(string)
 		**out = **in
 	}
