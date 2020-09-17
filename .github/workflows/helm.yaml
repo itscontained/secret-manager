@@ -76,7 +76,8 @@ jobs:
         run: |
           cd secret-manager
           make crds-to-chart
-          echo ::set-env name=LASTTAG::$(git describe --abbrev=0 --tags)
+          LASTTAG=$(git describe --abbrev=0 --tags)
+          echo "Using ${LASTTAG#v} for appVersion"
           sed -i "s/0.0.0/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
       - name: Generate Helm README
         run: cd secret-manager && make helm-docs

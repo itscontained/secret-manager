@@ -2,7 +2,7 @@ apiVersion: v2
 name: secret-manager
 description: External secret management for Kubernetes
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: 0.0.0
 keywords:
   - kubernetes
@@ -24,10 +24,8 @@ maintainers:
   - name: mcavoyk
     email: kellinmcavoy@gmail.com
 annotations:
-  artifacthub.io/operator: true
+  artifacthub.io/operator: "true"
   artifacthub.io/links: |
-    - name: Source Code
-      url: https://github.com/itscontained/secret-manager
     - name: DockerHub Image
       url: https://hub.docker.com/r/itscontained/secret-manager
     - name: Quay.io Image
