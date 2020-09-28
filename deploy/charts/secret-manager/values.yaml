@@ -41,7 +41,7 @@ podAnnotations: {}
 
 podLabels: {}
 
-extraEnv: {}
+extraEnv: []
 
 podSecurityContext: {}
   # fsGroup: 2000

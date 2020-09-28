@@ -63,9 +63,9 @@ spec:
           {{- range $arg := .Values.extraArgs }}
           - {{ $arg }}
           {{- end }}
+          {{- with .Values.extraEnv }}
           env:
-          {{- if .Values.extraEnv }}
-{{ toYaml .Values.extraEnv | indent 10 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- if .Values.prometheus.enabled }}
           ports:
