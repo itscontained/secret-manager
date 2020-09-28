@@ -24,6 +24,8 @@ IMG_TAG ?= ${GIT_TAG}
 IMG ?= itscontained/secret-manager:${IMG_TAG}
 HELM_DIR ?= deploy/charts/secret-manager
 
+DOCKER_BUILD_FLAGS =
+
 all: docker-build
 
 fmt: lint/check ## ensure consistent code style
@@ -67,7 +69,7 @@ generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
 
 docker-build: manifests generate ## Build the docker image
-	docker build . -t $(IMG)
+	docker build . -t $(IMG) $(DOCKER_BUILD_FLAGS)
 
 crds-to-chart: ## copy crds to helm chart directory
 	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
