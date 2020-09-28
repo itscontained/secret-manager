@@ -16,6 +16,15 @@ SecretStores.
 Inspired by the great work done by the contributors over at [godaddy/kubernetes-external-secrets][1] and
 [jetstack/cert-manager][2], This project aims to take some of the best ideas from both projects for managing secrets.
 
+## Installation
+
+```bash
+kubectl create namespace secret-manager
+helm repo add https://charts.itscontained.io
+helm repo update
+helm install secret-manager itscontained/secret-manager --namespace secret-manager --set installCRDs=true
+```
+
 ## Examples
 ### Basic Example
 To use an ExternalSecret first define a SecretStore for use.
