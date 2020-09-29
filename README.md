@@ -18,12 +18,7 @@ Inspired by the great work done by the contributors over at [godaddy/kubernetes-
 
 ## Installation
 
-```bash
-kubectl create namespace secret-manager
-helm repo add https://charts.itscontained.io
-helm repo update
-helm install secret-manager itscontained/secret-manager --namespace secret-manager --set installCRDs=true
-```
+Helm installation steps can be found on the chart readme at [artifacthub.io](https://artifacthub.io/packages/helm/itscontained/secret-manager)
 
 ## Examples
 ### Basic Example
