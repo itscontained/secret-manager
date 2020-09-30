@@ -16,6 +16,10 @@ SecretStores.
 Inspired by the great work done by the contributors over at [godaddy/kubernetes-external-secrets][1] and
 [jetstack/cert-manager][2], This project aims to take some of the best ideas from both projects for managing secrets.
 
+## Installation
+
+Helm installation steps can be found on the chart readme at [artifacthub.io](https://artifacthub.io/packages/helm/itscontained/secret-manager)
+
 ## Examples
 ### Basic Example
 To use an ExternalSecret first define a SecretStore for use.
