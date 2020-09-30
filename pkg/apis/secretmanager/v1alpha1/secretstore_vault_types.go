@@ -35,8 +35,9 @@ type VaultStore struct {
 	Server string `json:"server"`
 
 	// Path is the mount path of the Vault KV backend endpoint, e.g:
-	// "secret". The "/data" path suffix for fetching secrets from Vault
-	// is optional and will be appended if not present in specified path.
+	// "secret". The v2 KV secret engine version specific "/data" path suffix
+	// for fetching secrets from Vault is optional and will be appended
+	// if not present in specified path.
 	Path string `json:"path"`
 
 	// Version is the Vault KV secret engine version. This can be either "v1" or

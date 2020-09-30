@@ -119,8 +119,16 @@ func (v *Vault) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference
 func (v *Vault) readSecret(ctx context.Context, path, version string) (map[string][]byte, error) {
 	storeSpec := v.store.GetSpec()
 	kvPath := storeSpec.Vault.Path
-	if !strings.HasSuffix(kvPath, "/data") {
-		kvPath = fmt.Sprintf("%s/data", kvPath)
+
+	kvVersion := smv1alpha1.DefaultVaultKVEngineVersion
+	if storeSpec.Vault.Version != nil {
+		kvVersion = *storeSpec.Vault.Version
+	}
+
+	if kvVersion == smv1alpha1.DefaultVaultKVEngineVersion {
+		if !strings.HasSuffix(kvPath, "/data") {
+			kvPath = fmt.Sprintf("%s/data", kvPath)
+		}
 	}
 
 	req := v.client.NewRequest(http.MethodGet, fmt.Sprintf("/v1/%s/%s", kvPath, path))
@@ -136,11 +144,6 @@ func (v *Vault) readSecret(ctx context.Context, path, version string) (map[strin
 	vaultSecret, err := vault.ParseSecret(resp.Body)
 	if err != nil {
 		return nil, err
-	}
-
-	kvVersion := smv1alpha1.DefaultVaultKVEngineVersion
-	if storeSpec.Vault.Version != nil {
-		kvVersion = *storeSpec.Vault.Version
 	}
 
 	secretData := vaultSecret.Data
