@@ -71,6 +71,9 @@ generate: controller-gen ## Generate CRD code
 docker-build: manifests generate ## Build the docker image
 	docker build . -t $(IMG) $(DOCKER_BUILD_FLAGS)
 
+docker-buildx: manifests generate ## cross-compile
+	docker buildx build . -t $(IMG) $(DOCKER_BUILD_FLAGS)
+
 crds-to-chart: ## copy crds to helm chart directory
 	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
 	for i in deploy/charts/secret-manager/templates/crds/*.yaml; do \
