@@ -1,0 +1,68 @@
+replicaCount: 1
+
+image:
+  repository: secret-manager
+  pullPolicy: IfNotPresent
+  tag: "test"
+
+installCRDs: false
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+apiServerHost: ""
+kubeConfig: ""
+namespace: ""
+leaderElect: true
+
+extraEnv:
+  - name: AWS_SECRETSMANAGER_ENDPOINT
+    value: "http://localstack"
+  - name: AWS_STS_ENDPOINT
+    value: "http://localstack"
+  - name: AWS_REGION
+    value: us-east-1
+  - name: AWS_ACCESS_KEY_ID
+    value: foobar
+  - name: AWS_SECRET_ACCESS_KEY
+    value: foobar
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+extraArgs: []
+
+rbac:
+  create: true
+
+podLabels:
+  app: secret-manager
+
+podAnnotations:
+  test: foobar
+
+podSecurityContext: {}
+
+securityContext: {}
+
+healthCheck:
+  enabled: true
+  port: 8400
+
+prometheus:
+  enabled: true
+  service:
+    annotations: {}
+    labels: {}
+    port: 8711
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

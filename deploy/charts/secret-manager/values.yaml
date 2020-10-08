@@ -39,6 +39,10 @@ rbac:
 
 podAnnotations: {}
 
+podLabels: {}
+
+extraEnv: []
+
 podSecurityContext: {}
   # fsGroup: 2000
 

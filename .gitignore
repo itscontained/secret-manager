@@ -28,3 +28,5 @@ deploy/charts/secret-manager/README.md
 
 # generated CRDs
 deploy/charts/secret-manager/templates/crds/*.yaml
+
+e2e/k8s/deploy

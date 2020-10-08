@@ -1,0 +1,39 @@
+name: e2e
+on:
+  push:
+    branches:
+    - master
+    tags:
+      - 'v*.*.*'
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+  pull_request:
+    branches: master
+    paths:
+      - 'cmd/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Dockerfile'
+jobs:
+  test-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout secret-manger
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.0.0
+        with:
+          node_image: kindest/node:v1.19.0
+          cluster_name: secret-manager
+      - name: Run e2e tests
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go get github.com/onsi/ginkgo/ginkgo
+          make e2e
