@@ -16,6 +16,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	appctrl "github.com/itscontained/secret-manager/cmd/controller/app"
 
@@ -25,11 +26,17 @@ import (
 )
 
 func main() {
+	exitCode := 0
 	log.InitFlags(flag.CommandLine)
+
 	stopCh := ctrl.SetupSignalHandler()
 	cmd := appctrl.NewControllerCmd(stopCh)
-	_ = flag.CommandLine.Parse([]string{})
+	cmd.Flags().AddGoFlagSet(flag.CommandLine)
 	if err := cmd.Execute(); err != nil {
-		log.Fatalf("error executing command: %v", err.Error())
+		log.Errorf("error executing command: %v", err.Error())
+		exitCode = 1
 	}
+
+	log.Flush()
+	os.Exit(exitCode)
 }
