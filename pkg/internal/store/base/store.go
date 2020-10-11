@@ -16,7 +16,6 @@ package base
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -50,7 +49,7 @@ func (f *Default) New(ctx context.Context, log logr.Logger, genericStore smv1alp
 		return nil, fmt.Errorf("SecretStore %q does not have a valid client", genericStore.GetName())
 	}
 	if err != nil {
-		return nil, errors.New("unable to setup SecretStore client")
+		return nil, fmt.Errorf("unable to setup SecretStore client: %w", err)
 	}
 	return storeClient, nil
 }
