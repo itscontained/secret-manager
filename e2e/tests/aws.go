@@ -88,7 +88,7 @@ var _ = ginkgo.Describe("[aws]", func() {
 					{
 						SecretKey: "username-from-aws",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("my-aws-secret"),
+							Name:     "my-aws-secret",
 							Property: smmeta.String("username"),
 							Version:  smmeta.String("AWSCURRENT"),
 						},
@@ -96,7 +96,7 @@ var _ = ginkgo.Describe("[aws]", func() {
 					{
 						SecretKey: "password-from-aws",
 						RemoteRef: smv1alpha1.RemoteReference{
-							Name:     smmeta.String("my-aws-secret"),
+							Name:     "my-aws-secret",
 							Property: smmeta.String("password"),
 							Version:  smmeta.String("AWSCURRENT"),
 						},

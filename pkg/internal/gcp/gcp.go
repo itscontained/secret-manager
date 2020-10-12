@@ -64,11 +64,11 @@ func (g *GCP) GetSecret(_ context.Context, ref smv1alpha1.RemoteReference) ([]by
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	data, err := g.readSecret(*ref.Name, version)
+	data, err := g.readSecret(ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
-	return data[*ref.Name], nil
+	return data[ref.Name], nil
 }
 
 func (g *GCP) GetSecretMap(_ context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
@@ -76,7 +76,7 @@ func (g *GCP) GetSecretMap(_ context.Context, ref smv1alpha1.RemoteReference) (m
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	return g.readSecret(*ref.Name, version)
+	return g.readSecret(ref.Name, version)
 }
 
 func (g *GCP) readSecret(id, version string) (map[string][]byte, error) {
