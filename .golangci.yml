@@ -94,7 +94,7 @@ linters:
     - whitespace
 
 service:
-  golangci-lint-version: 1.30.x
+  golangci-lint-version: 1.31.x
 
 
 issues:

@@ -30,7 +30,7 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.0.0
         with:
-          node_image: kindest/node:v1.19.0
+          node_image: kindest/node:v1.19.1
           cluster_name: secret-manager
       - name: Run e2e tests
         run: |
