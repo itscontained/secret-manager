@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.14.9-buster as builder
+FROM golang:1.15.2-buster as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -23,7 +23,7 @@ RUN make build
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot-amd64
 WORKDIR /
 LABEL maintainer="DirtyCajunRice,mcavoyk" \
   org.opencontainers.image.created=$BUILD_DATE \

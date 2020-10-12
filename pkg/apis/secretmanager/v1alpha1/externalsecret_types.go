@@ -65,17 +65,13 @@ type ObjectReference struct {
 type KeyReference struct {
 	// The key in the generated secret to place fetched secret value into.
 	SecretKey string `json:"secretKey"`
-	// Namespace of the secret. Ignored if SecretStore
-	// +optional
-	Namespace *string `json:"namespace,omitempty"`
 	// RemoteRef describes the path and other parameters to access the secret for the specific SecretStore
 	RemoteRef RemoteReference `json:"remoteRef"`
 }
 
 type RemoteReference struct {
-	// Name of the key/path in the SecretStore. Must be a supported parameter
-	// +optional
-	Name *string `json:"name"`
+	// Name of the key, path, or id in the SecretStore.
+	Name string `json:"name"`
 
 	// Property to extract secret value at path in the SecretStore.
 	// Can be omitted if not supported by SecretStore or if entire secret should

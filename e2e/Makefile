@@ -5,7 +5,7 @@ start-kind:
 	  --name secret-manager \
 	  --config kind.yaml \
 	  --retain \
-	  --image "kindest/node:v1.19.0"
+	  --image "kindest/node:v1.19.1"
 
 test: e2e-image
 	$(MAKE) -C ../ docker-build IMG=secret-manager:test

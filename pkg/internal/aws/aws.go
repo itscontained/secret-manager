@@ -76,7 +76,7 @@ func (a *AWS) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	data, err := a.readSecret(ctx, *ref.Name, version)
+	data, err := a.readSecret(ctx, ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (a *AWS) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) 
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	return a.readSecret(ctx, *ref.Name, version)
+	return a.readSecret(ctx, ref.Name, version)
 }
 
 func (a *AWS) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
