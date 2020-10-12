@@ -23,7 +23,7 @@ RUN make build
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot-amd64
 WORKDIR /
 LABEL maintainer="DirtyCajunRice,mcavoyk" \
   org.opencontainers.image.created=$BUILD_DATE \
