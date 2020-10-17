@@ -16,7 +16,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -172,12 +171,6 @@ func (r *ExternalSecretReconciler) getSecret(ctx context.Context, storeClient st
 			return nil, fmt.Errorf("name %q: %w", secretRef.RemoteRef.Name, err)
 		}
 		secretDataMap[secretRef.SecretKey] = secretData
-	}
-
-	for secretKey, secretData := range secretDataMap {
-		dstBytes := make([]byte, base64.StdEncoding.EncodedLen(len(secretData)))
-		base64.StdEncoding.Encode(dstBytes, secretData)
-		secretDataMap[secretKey] = dstBytes
 	}
 
 	return secretDataMap, nil
