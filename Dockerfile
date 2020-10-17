@@ -1,5 +1,7 @@
 # Build the manager binary
-FROM golang:1.15.2-buster as builder
+ARG BUILDPLATFORM=linux/amd64
+ARG GO_VERSION=1.15.3
+FROM --platform=$BUILDPLATFORM golang:$GO_VERSION-buster as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -19,11 +21,14 @@ COPY build build/
 COPY .git .git/
 
 # Build
-RUN make build
+ARG ARCHS
+RUN make build-multiarch
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot-amd64
+FROM alpine:3.12
+
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
 WORKDIR /
 LABEL maintainer="DirtyCajunRice,mcavoyk" \
   org.opencontainers.image.created=$BUILD_DATE \
@@ -35,7 +40,10 @@ LABEL maintainer="DirtyCajunRice,mcavoyk" \
   org.opencontainers.image.title="secret-manager" \
   org.opencontainers.image.description="Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External SecretStores." \
   org.opencontainers.image.licenses="APACHE"
-COPY --from=builder /workspace/bin/manager .
-USER nonroot:nonroot
+COPY --from=builder "/workspace/bin/manager-$TARGETOS-$TARGETARCH" /manager
+
+# Run as UID for nobody since k8s pod securityContext runAsNonRoot can't resolve the user ID:
+# https://github.com/kubernetes/kubernetes/issues/40958
+USER 65534
 
 ENTRYPOINT ["/manager"]

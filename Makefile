@@ -1,7 +1,8 @@
-MAKEFLAGS += --warn-undefined-variables
-SHELL := /bin/bash
-.SHELLFLAGS := -euo pipefail -c
+MAKEFLAGS     += --warn-undefined-variables
+SHELL         := /bin/bash
+.SHELLFLAGS   := -euo pipefail -c
 .DEFAULT_GOAL := all
+ARCHS         ?= arm64 amd64 arm
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -24,7 +25,7 @@ IMG_TAG ?= ${GIT_TAG}
 IMG ?= itscontained/secret-manager:${IMG_TAG}
 HELM_DIR ?= deploy/charts/secret-manager
 
-DOCKER_BUILD_FLAGS =
+DOCKER_BUILD_FLAGS ?=
 
 all: docker-build
 
@@ -60,6 +61,11 @@ test: ## Run tests
 
 build: generate ## Build manager binary
 	CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o bin/manager ./cmd/controller/main.go
+
+build-multiarch: ## Build multi-arch manager binary
+	for arch in $(ARCHS); do \
+		CGO_ENABLED=0 GOOS=linux GOARCH=$${arch} go build -a -ldflags '$(LDFLAGS)' -o "bin/manager-linux-$${arch}" ./cmd/controller/main.go ;\
+	done ;\
 
 manifests: controller-gen ## Generate CRD manifests
 	$(CONTROLLER_GEN) "crd:crdVersions=v1" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds

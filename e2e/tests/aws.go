@@ -121,8 +121,8 @@ var _ = ginkgo.Describe("[aws]", func() {
 			gomega.Expect(f.KubeClient.Get(context.Background(), key, fetchedSecret)).Should(gomega.Succeed())
 			return fetchedSecret.Data
 		}, framework.DefaultTimeout, framework.Poll).Should(gomega.Equal(map[string][]byte{
-			"username-from-aws": []byte(b64enc("bob")),
-			"password-from-aws": []byte(b64enc("abc123xyz456")),
+			"username-from-aws": []byte("bob"),
+			"password-from-aws": []byte("abc123xyz456"),
 		}), "The generated secret should be created")
 	})
 })
