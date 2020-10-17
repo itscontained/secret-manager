@@ -1,4 +1,5 @@
 # Build the manager binary
+ARG BUILDPLATFORM=linux/amd64
 FROM --platform=$BUILDPLATFORM golang:1.15.2-buster as builder
 
 WORKDIR /workspace
@@ -23,8 +24,8 @@ RUN make build-multiarch
 
 FROM alpine:3.12
 
-ARG TARGETOS
-ARG TARGETARCH
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 
 WORKDIR /
 LABEL maintainer="DirtyCajunRice,mcavoyk" \
