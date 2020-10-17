@@ -1,4 +1,5 @@
-FROM golang:1.15 as BASE
+ARG GO_VERSION=1.15.3
+FROM golang:$GO_VERSION-buster as builder
 
 ENV KUBECTL_VERSION="v1.19.2"
 ENV HELM_VERSION="v3.3.4"
@@ -18,9 +19,9 @@ RUN apk add -U --no-cache \
     libc6-compat \
     openssl
 
-COPY --from=BASE /go/bin/ginkgo /usr/local/bin/
-COPY --from=BASE /usr/local/bin/kubectl /usr/local/bin/
-COPY --from=BASE /usr/local/bin/helm /usr/local/bin/
+COPY --from=builder /go/bin/ginkgo /usr/local/bin/
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/
+COPY --from=builder /usr/local/bin/helm /usr/local/bin/
 
 COPY entrypoint.sh                  /entrypoint.sh
 COPY e2e.test                       /e2e.test
