@@ -16,7 +16,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -211,7 +210,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 
 			testSecretData := []byte("this-is-a-secret")
 			expectedData := map[string][]byte{
-				"key": base64Encode(testSecretData),
+				"key": testSecretData,
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
@@ -307,8 +306,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 			testSecretData := []byte("value3")
 			expectedMap := map[string][]byte{
-				"key1": base64Encode(testSecretMap["key1"]),
-				"key2": base64Encode(testSecretData),
+				"key1": testSecretMap["key1"],
+				"key2": testSecretData,
 			}
 			storeFactory.WithGetSecretMap(testSecretMap, nil)
 			storeFactory.WithGetSecret(testSecretData, nil)
@@ -398,7 +397,7 @@ var _ = Describe("ExternalSecrets Controller", func() {
 
 			testSecretData := []byte("this-is-a-test-secret")
 			expectedData := map[string][]byte{
-				"key1": base64Encode(testSecretData),
+				"key1": testSecretData,
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, logr.Logger, client.Client, client.Reader,
@@ -508,12 +507,6 @@ var _ = Describe("ExternalSecrets Controller", func() {
 		})
 	})
 })
-
-func base64Encode(src []byte) []byte {
-	dst := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
-	base64.StdEncoding.Encode(dst, src)
-	return dst
-}
 
 // arbitrary SecretStore to use when injecting factory
 var sampleStore = &smv1alpha1.SecretStore{
