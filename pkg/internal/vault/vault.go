@@ -217,7 +217,7 @@ func (v *Vault) setToken(ctx context.Context, client Client) error {
 	if kubernetesAuth != nil {
 		token, err := v.requestTokenWithKubernetesAuth(ctx, client, kubernetesAuth)
 		if err != nil {
-			return fmt.Errorf("error reading Kubernetes service account token from %s: %s", kubernetesAuth.SecretRef.Name, err.Error())
+			return fmt.Errorf("error reading Kubernetes service account token. error: %s", err.Error())
 		}
 		client.SetToken(token)
 		return nil
