@@ -21,6 +21,7 @@ COPY build build/
 COPY .git .git/
 
 # Build
+ARG ARCHS
 RUN make build-multiarch
 
 FROM alpine:3.12

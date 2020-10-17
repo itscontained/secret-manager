@@ -1,6 +1,6 @@
-MAKEFLAGS += --warn-undefined-variables
-SHELL := /bin/bash
-.SHELLFLAGS := -euo pipefail -c
+MAKEFLAGS     += --warn-undefined-variables
+SHELL         := /bin/bash
+.SHELLFLAGS   := -euo pipefail -c
 .DEFAULT_GOAL := all
 ARCHS         ?= arm64 amd64 arm
 

@@ -13,7 +13,7 @@ start-kind: ## Start kind cluster
 	  --image "kindest/node:v1.19.1"
 
 test: e2e-image ## Run e2e tests against current kube context
-	$(MAKE) -C ../ docker-build IMG_TAG=$(IMG_TAG)
+	$(MAKE) -C ../ docker-build IMG_TAG=$(IMG_TAG) DOCKER_BUILD_FLAGS="--build-arg ARCHS=amd64"
 	kind load docker-image --name="secret-manager" itscontained/secret-manager:$(IMG_TAG)
 	kind load docker-image --name="secret-manager" $(IMG)
 	./run.sh
