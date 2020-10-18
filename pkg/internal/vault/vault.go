@@ -217,7 +217,7 @@ func (v *Vault) setToken(ctx context.Context, client Client) error {
 	if kubernetesAuth != nil {
 		token, err := v.requestTokenWithKubernetesAuth(ctx, client, kubernetesAuth)
 		if err != nil {
-			return fmt.Errorf("error reading Kubernetes service account token from %s: %s", kubernetesAuth.SecretRef.Name, err.Error())
+			return fmt.Errorf("error reading Kubernetes service account token. error: %s", err.Error())
 		}
 		client.SetToken(token)
 		return nil
@@ -302,7 +302,7 @@ func (v *Vault) requestTokenWithKubernetesAuth(ctx context.Context, client Clien
 	var jwt string
 	var err error
 	if kubernetesAuth.SecretRef == nil {
-		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount"
+		tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
 		if _, err = os.Stat(tokenPath); !os.IsNotExist(err) {
 			var jwtByte []byte
 			jwtByte, err = ioutil.ReadFile(tokenPath)
