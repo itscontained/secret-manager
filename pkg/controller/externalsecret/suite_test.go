@@ -21,7 +21,7 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	sm1valpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	fakestore "github.com/itscontained/secret-manager/pkg/internal/store/fake"
+	fakestore "github.com/itscontained/secret-manager/pkg/store/fake"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -85,12 +85,12 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(k8sClient).ToNot(BeNil())
 
 	storeFactory = fakestore.New()
+	storeFactory.RegisterAs("vault")
 	err = (&ExternalSecretReconciler{
-		Client:       k8sClient,
-		Reader:       k8sManager.GetAPIReader(),
-		Scheme:       k8sManager.GetScheme(),
-		Log:          ctrl.Log.WithName("controllers").WithName("ExternalSecrets"),
-		storeFactory: storeFactory,
+		Client: k8sClient,
+		Reader: k8sManager.GetAPIReader(),
+		Scheme: k8sManager.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ExternalSecrets"),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

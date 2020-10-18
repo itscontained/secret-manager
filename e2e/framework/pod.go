@@ -18,8 +18,6 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
-
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
 )
 
 // podRunningReady checks whether pod p's phase is running and it has a ready
@@ -31,9 +29,20 @@ func podRunningReady(p *corev1.Pod) (bool, error) {
 			p.ObjectMeta.Name, p.Spec.NodeName, corev1.PodRunning, p.Status.Phase)
 	}
 	// Check the ready condition is true.
-	if !podutil.IsPodReady(p) {
+	if isPodReady(&p.Status) {
 		return false, fmt.Errorf("pod '%s' on '%s' didn't have condition {%v %v}; conditions: %v",
 			p.ObjectMeta.Name, p.Spec.NodeName, corev1.PodReady, corev1.ConditionTrue, p.Status.Conditions)
 	}
 	return true, nil
+}
+
+func isPodReady(s *corev1.PodStatus) bool {
+	var condition *corev1.PodCondition
+	for i, cond := range s.Conditions {
+		if cond.Type == corev1.PodReady {
+			s.Conditions[i].DeepCopyInto(condition)
+			break
+		}
+	}
+	return condition != nil && condition.Status == corev1.ConditionTrue
 }

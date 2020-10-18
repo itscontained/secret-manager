@@ -29,7 +29,9 @@ import (
 	vault "github.com/hashicorp/vault/api"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
+	ctxlog "github.com/itscontained/secret-manager/pkg/log"
+	"github.com/itscontained/secret-manager/pkg/store"
+	"github.com/itscontained/secret-manager/pkg/store/schema"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -48,19 +50,24 @@ type Client interface {
 }
 
 type Vault struct {
-	kubeClient ctrlclient.Client
-	store      smv1alpha1.GenericStore
-	namespace  string
-	log        logr.Logger
-	client     Client
+	kube      ctrlclient.Client
+	store     smv1alpha1.GenericStore
+	namespace string
+	log       logr.Logger
+	client    Client
 }
 
-func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
-	v := &Vault{
-		kubeClient: kubeClient,
-		namespace:  namespace,
-		store:      store,
-		log:        log,
+func init() {
+	schema.Register("vault", &Vault{})
+}
+
+func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+	log := ctxlog.FromContext(ctx)
+	v = &Vault{
+		kube:      kube,
+		namespace: namespace,
+		store:     store,
+		log:       log,
 	}
 
 	cfg, err := v.newConfig()
@@ -232,7 +239,7 @@ func (v *Vault) secretKeyRef(ctx context.Context, namespace, name, key string) (
 		Namespace: namespace,
 		Name:      name,
 	}
-	err := v.kubeClient.Get(ctx, ref, secret)
+	err := v.kube.Get(ctx, ref, secret)
 	if err != nil {
 		return "", err
 	}
