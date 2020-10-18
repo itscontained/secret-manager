@@ -20,25 +20,26 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set Commit Message
+        id: commitmsg
         run: |
-          echo ::set-env name=commitmsg::$(git log --format=%B -n 1 ${{ github.event.after }})
+          echo ::set-output name=commitmsg::$(git log --format=%B -n 1 ${{ github.event.after }})
       - name: Fix appversion for tests
         run: |
           LASTTAG=$(git describe --abbrev=0 --tags)
-          sed -i "s/0.0.0/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
+          sed -i "s/%%APP_VERSION%%/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
       - name: lint
         id: lint
         uses: helm/chart-testing-action@v1.0.0
-        if: "! contains(env.commitmsg, '[skip chart-lint]')"
+        if: "! contains(steps.commitmsg.outputs.commitmsg, '[skip chart-lint]')"
         with:
           command: lint
           config: deploy/charts/ct.yaml
       - name: Create kind cluster
         uses: helm/kind-action@v1.0.0
-        if: "steps.lint.outputs.changed == 'true' && ! contains(env.commitmsg, '[skip chart-install]')"
+        if: "steps.lint.outputs.changed == 'true' && ! contains(steps.commitmsg.outputs.commitmsg, '[skip chart-install]')"
       - name: test
         uses: helm/chart-testing-action@v1.0.0
-        if: "steps.lint.outputs.changed == 'true' && ! contains(env.commitmsg, '[skip chart-install]')"
+        if: "steps.lint.outputs.changed == 'true' && ! contains(steps.commitmsg.outputs.commitmsg, '[skip chart-install]')"
         with:
           command: install
           config: .ct.yaml
@@ -78,7 +79,7 @@ jobs:
           make crds-to-chart
           LASTTAG=$(git describe --abbrev=0 --tags)
           echo "Using ${LASTTAG#v} for appVersion"
-          sed -i "s/0.0.0/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
+          sed -i "s/%%APP_VERSION%%/${LASTTAG#v}/" deploy/charts/secret-manager/Chart.yaml
       - name: Generate Helm README
         run: cd secret-manager && make helm-docs
       - name: Release Chart

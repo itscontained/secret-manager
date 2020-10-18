@@ -9,16 +9,14 @@ on:
     paths:
       - 'cmd/**'
       - 'pkg/**'
-      - 'go.mod'
-      - 'go.sum'
+      - 'go.*'
       - 'Dockerfile'
   pull_request:
     branches: master
     paths:
       - 'cmd/**'
       - 'pkg/**'
-      - 'go.mod'
-      - 'go.sum'
+      - 'go.*'
       - 'Dockerfile'
 env:
   IMAGES: ${{ github.repository_owner }}/secret-manager

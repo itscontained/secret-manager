@@ -1,9 +1,9 @@
-MAKEFLAGS += --warn-undefined-variables
-SHELL := /bin/bash
+MAKEFLAGS   += --warn-undefined-variables
+SHELL       := /bin/bash
 .SHELLFLAGS := -euo pipefail -c
 
-IMG_TAG=test
-IMG=itscontained/secret-manager-e2e:test
+IMG_TAG = test
+IMG     = itscontained/secret-manager-e2e:test
 
 start-kind: ## Start kind cluster
 	kind create cluster \
@@ -27,6 +27,10 @@ e2e-image: e2e-bin
 	$(MAKE) -C ../ crds-to-chart
 	cp -r ../deploy ./k8s
 	docker build -t $(IMG) .
+
+stop-kind: ## Stop kind cluster
+	kind delete cluster \
+		--name secret-manager \
 
 help: ## displays this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_\/-]+:.*?## / {printf "\033[34m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | \

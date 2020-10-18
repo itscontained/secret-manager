@@ -1,236 +1,45 @@
 # Secret Manager
-Secret Manager is a set of Kubernetes CRDs and controllers which define a common method of interacting with External
-SecretStores.
+Secret Manager is a Kubernetes add-on to automate the creation and renewal of
+secrets from various external secret sources.
 
-## SecretStore Backends
-### Supported
-* Hashicorp Vault
-* AWS SecretManager
-* GCP Secret Manager
+Secret Manager can also reformat the sourced secrets to fit the configuration
+expected by the workloads using the created secrets.
 
-### Planned
-* Azure Key Vault
-* Bitwarden
-
-## Inspiration
-Inspired by the great work done by the contributors over at [godaddy/kubernetes-external-secrets][1] and
-[jetstack/cert-manager][2], This project aims to take some of the best ideas from both projects for managing secrets.
+Based on the work from [godaddy/kubernetes-external-secrets](https://github.com/godaddy/kubernetes-external-secrets)
+and with borrowed wisdom from [jetstack/cert-manager](https://github.com/jetstack/cert-manager).
 
 ## Installation
 
 Helm installation steps can be found on the chart readme at [artifacthub.io](https://artifacthub.io/packages/helm/itscontained/secret-manager)
 
-## Examples
-### Basic Example
-To use an ExternalSecret first define a SecretStore for use.
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: SecretStore
-metadata:
-  name: vault
-  namespace: example-ns
-spec:
-  vault:
-    server: "https://vault.example.com"
-    path: secret/data
-    auth:
-      kubernetes:
-        mountPath: kubernetes
-        role: example-role
-        secretRef:
-          name: vault-secret
-```
+## Documentation
 
-The SecretStore defines how ExternalSecrets for the Store should interact with the backend, and the permission boundary
-that the ExternalSecrets have within the namespace or cluster when accessing the SecretStore.
+Documentation and examples for supported external secret sources can be found in
+the [docs directory](docs/) of this project.
 
-Once a SecretStore is defined an ExternalSecret can be created which references the Store.
+## Support
 
-In this example, the Vault KV Secrets Engine has a secret at the name `teamA/hello-service`:
-```json
-{
-  "data": {
-      "serviceBapiKey": "foo-123",
-      "serviceCapiKey": "bar-456",
-      "private-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
-  }
-}
-```
+If you encounter any issues whilst using secret-manager, we have a number of places you
+can use to try and get help.
 
-The ExternalSecret referencing this secret would look like:
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: ExternalSecret
-metadata:
-  name: hello-service
-  namespace: example-ns
-spec:
-  storeRef:
-    name: vault
-  data:
-  - secretKey: password
-    remoteRef:
-      name: teamA/hello-service
-      property: serviceBapiKey
-```
+First of all we recommend looking at the [troubleshooting guide](docs/troubleshooting.md) of our documentation.
 
-This ExternalSecret generates the secret:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hello-service
-  namespace: example-ns
-type: Opaque
-data:
-  # base64 decoded: foo-123
-  password: Zm9vLTEyMw==
-```
+The quickest way to ask a question is to first post on [#external-secrets](https://kubernetes.slack.com/archives/C017BF84G2Y)
+channel on the Kubernetes Slack. There are some community members in this channel, and
+you can often get an answer to your question straight away!
 
-### Advanced Examples
-#### Renewing Secrets
-The ExternalSecret can also optionally define the secret polling time. The ExternalSecret is refreshed when this
-period passes.
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: ExternalSecret
-metadata:
-  name: hello-service
-  namespace: example-ns
-spec:
-  storeRef:
-    name: vault
-  renewAfter: "7d"
-  data:
-  - secretKey: password
-    remoteRef:
-      name: teamA/hello-service
-      property: serviceBapiKey
-```
+You can also try [searching for an existing issue](https://github.com/itscontained/secret-manager/issues). Properly searching
+for an existing issue will help reduce the number of duplicates, and help you find the answer you are looking for quicker.
 
-#### Templating Secrets
-The ExternalSecret can optionally define the format of the created Kubernetes secrets. The `template` specification
-field deeply merges with the generated ExternalSecret and ran through a go template parser. This can allow secrets
-with `type` other than `Opaque`, custom labels/annotations on the secret, or a secret data field configured differently
-than the data available in the ExternalSecret Store.
+If you believe you have encountered a bug, and cannot find an existing issue similar to your own,
+you may open a new issue. Please be sure to include as much information as possible about your environment.
 
-An example imagePullSecret with an ExternalSecret:
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: ExternalSecret
-metadata:
-  name: hello-service-images
-  namespace: example-ns
-spec:
-  storeRef:
-    name: vault
-  data:
-  - secretKey: .dockerconfigjson
-    remoteRef:
-      name: teamA/hello-service
-      property: private-images
-  template:
-    metadata:
-      annotations:
-        example: annotation-value
-    type: kubernetes.io/dockerconfigjson
-```
+## Contributing
 
-Generates:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hello-service-images
-  namespace: example-ns
-  annotations:
-    example: annotation-value
-type: kubernetes.io/dockerconfigjson
-data:
-  # base64 decoded: {"auths":{"registry.example.com":{"username":"foo","password":"bar","email":"foo@example.com"}}}
-  .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
-```
+We welcome pull requests with open arms! There's a lot of work to do here, and we're especially concerned with
+ensuring the longevity and reliability of the project.
 
-An example secret with a templated configuration:
+Please take a look at our [issue tracker](https://github.com/itscontained/secret-manager/issues) if you are
+unsure where to start with getting involved!
 
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: ExternalSecret
-metadata:
-  name: hello-service-config
-  namespace: example-ns
-spec:
-  storeRef:
-    name: vault
-  data:
-  - secretKey: password
-    remoteRef:
-      name: teamA/hello-service
-      property: serviceBapiKey
-  template:
-    data:
-      config.yaml: |
-      {
-        "apiUrl": "http://localhost:12345",
-        "apiKey": {{ .data.password | quote }}
-      }
-```
-
-Generates:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hello-service-config
-  namespace: example-ns
-type: Opaque
-data:
-  config.yaml: ewogICJhcGlVcmwiOiAiaHR0cDovL2xvY2FsaG9zdDoxMjM0NSIsCiAgImFwaUtleSI6ICJmb28tMTIzIgp9
-# config.yaml: |
-# {
-#   "apiUrl": "http://localhost:12345"
-#   "apiKey": "foo-123"
-# }
-```
-
-
-### Embedding Secrets
-
-If the SecretStore returns a map of secret values, then these secrets can be individually referenced via the `property`
-field as already demonstrated. When all secret fields should be in the generated secret, the `dataFrom` field can be
-specified to fetch all ExternalSecret properties into the generated secret.
-
-
-```yaml
-apiVersion: secret-manager.itscontained.io/v1alpha1
-kind: ExternalSecret
-metadata:
-  name: hello-service-config
-  namespace: example-ns
-spec:
-  storeRef:
-    name: vault
-  dataFrom:
-  - name: teamA/hello-service
-```
-
-Generates:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: hello-service-config
-  namespace: example-ns
-type: Opaque
-data:
-  serviceBapiKey: ewogICJjb25maWciOiAiZm9vLTEyMyIKfQ==
-  serviceCapiKey: YmFyLTQ1Ng==
-  private-images: eyJhdXRocyI6eyJyZWdpc3RyeS5leGFtcGxlLmNvbSI6eyJ1c2VybmFtZSI6ImZvbyIsInBhc3N3b3JkIjoiYmFyIiwiZW1haWwiOiJmb29AZXhhbXBsZS5jb20ifX19
-# "serviceBapiKey": "foo-123",
-# "serviceCapiKey": "bar-456",
-# "private-images": "{ \"auths\": {\"registry.example.com\":{\"username\":\"foo\",\"password\":\"bar\",\"email\":\"foo@example.com\"}}}"
-```
-
-[1]: https://github.com/godaddy/kubernetes-external-secrets
-[2]: https://github.com/jetstack/cert-manager
+Developer documentation is available in the [official documentation](docs/contributing/README.md).
