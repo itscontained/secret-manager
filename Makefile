@@ -21,8 +21,8 @@ LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.version=${BINARY_V
 LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.gitCommit=${GIT_COMMIT}
 LDFLAGS += -X github.com/itscontained/secret-manager/pkg/util.gitState=${GIT_DIRTY}
 
-IMG_TAG ?= ${GIT_TAG}
-IMG ?= itscontained/secret-manager:${IMG_TAG}
+IMG_TAG  ?= ${GIT_TAG}
+IMG      ?= itscontained/secret-manager:${IMG_TAG}
 HELM_DIR ?= deploy/charts/secret-manager
 
 DOCKER_BUILD_FLAGS ?=
@@ -41,7 +41,7 @@ else ifneq (,$(wildcard $(GOBIN)/golangci-lint))
 GOLANGCI_LINT=$(GOBIN)/golangci-lint
 endif
 
-lint-install: ## installs golangci-lint to the go bin dir
+lint-install: # installs golangci-lint to the go bin dir
 	@if ! golangci-lint --version > /dev/null 2>&1; then \
 		echo "Installing golangci-lint"; \
 		curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(GOBIN) v1.31.0; \
@@ -62,7 +62,7 @@ test: ## Run tests
 build: generate ## Build manager binary
 	CGO_ENABLED=0 go build -a -ldflags '$(LDFLAGS)' -o bin/manager ./cmd/controller/main.go
 
-build-multiarch: ## Build multi-arch manager binary
+build-multiarch: # Build multi-arch manager binary
 	for arch in $(ARCHS); do \
 		CGO_ENABLED=0 GOOS=linux GOARCH=$${arch} go build -a -ldflags '$(LDFLAGS)' -o "bin/manager-linux-$${arch}" ./cmd/controller/main.go ;\
 	done ;\
@@ -77,16 +77,16 @@ generate: controller-gen ## Generate CRD code
 docker-build: manifests generate ## Build the docker image
 	docker build . -t $(IMG) $(DOCKER_BUILD_FLAGS)
 
-docker-buildx: manifests generate ## cross-compile
+docker-buildx: manifests generate # cross-compile
 	docker buildx build . -t $(IMG) $(DOCKER_BUILD_FLAGS)
 
-crds-to-chart: ## copy crds to helm chart directory
+crds-to-chart: ## Copy crds to helm chart directory
 	cp deploy/crds/*.yaml $(HELM_DIR)/templates/crds/; \
 	for i in deploy/charts/secret-manager/templates/crds/*.yaml; do \
 		sed -i '1s/.*/{{- if .Values.installCRDs }}/;$$a{{- end }}' $$i; \
 	done
 
-docker-build-kind-deploy: docker-build crds-to-chart ## copy
+docker-build-kind-deploy: docker-build crds-to-chart # Deploy to local kind cluster
 	kind load docker-image ${IMG} --name test
 	kind export kubeconfig --name test --kubeconfig $(HOME)/.kube/configs/kind-test.yaml
 	kubie ctx kind-test --namespace kube-system
@@ -101,8 +101,16 @@ helm-docs: ## Generate helm docs
 	cd $(HELM_DIR); \
 	docker run --rm -v $(shell pwd)/$(HELM_DIR):/helm-docs -u $(shell id -u) jnorwood/helm-docs:latest
 
-e2e: generate manifests
+e2e-start: ## Start local kind cluster
+	$(MAKE) -C e2e start-kind
+
+e2e-stop: ## Stop local kind cluster
+	$(MAKE) -C e2e stop-kind
+
+e2e-test: generate manifests ## Run e2e tests against current context
 	$(MAKE) -C e2e test
+
+e2e: e2e-start e2e-test e2e-stop ## Creates kind cluster and runs e2e tests
 
 # find or download controller-gen
 # download controller-gen if necessary

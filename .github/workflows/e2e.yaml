@@ -36,4 +36,4 @@ jobs:
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           go get github.com/onsi/ginkgo/ginkgo
-          make e2e
+          make e2e-test

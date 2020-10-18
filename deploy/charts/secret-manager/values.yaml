@@ -3,35 +3,37 @@ replicaCount: 1
 image:
   repository: itscontained/secret-manager
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # image.tag -- The image tag to use. The default is the chart appVersion.
   tag: ""
 
-installCRDs: false
+# installCRDs -- If set, install and upgrade CRDs through helm chart.
+installCRDs: true
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# apiServerHost -- Optional ApiServer host address to connect to. If not specified, autoconfiguration will be attempted
+# apiServerHost -- Optional api-server host address to connect to. Only required if out-of-cluster.
 apiServerHost: ""
-# kubeConfig -- Path to a kubeconfig. Only required if out-of-cluster
+# kubeConfig -- Optionial path to a kubeconfig. Only required if out-of-cluster.
 kubeConfig: ""
 # namespace -- If set, this limits the scope of secret-manager to a single namespace and
-# ClusterSecretStores are disabled. If not specified, all namespaces will be watched
+# ClusterSecretStores are disabled. If not specified, all namespaces will be watched.
 namespace: ""
 # leaderElect -- If true, secret-manager will perform leader election between instances to ensure no more
-# than one instance of secret-manager operates at a time
+# than one instance of secret-manager operates at a time.
 leaderElect: true
 
 serviceAccount:
-  # serviceAccount.create -- Specifies whether a service account should be created
+  # serviceAccount.create -- Specifies whether a service account should be created.
   create: true
-  # serviceAccount.annotations -- Annotations to add to the service account
+  # serviceAccount.annotations -- Annotations to add to the service account.
   annotations: {}
   # serviceAccount.name -- The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
+  # If not set and create is true, a name is generated using the fullname template.
   name: ""
 
+## extraEnv -- List of extra arguments to pass to container.
 extraArgs: []
 
 rbac:
@@ -41,6 +43,7 @@ podAnnotations: {}
 
 podLabels: {}
 
+## extraEnv -- Extra environment variables to add to container.
 extraEnv: []
 
 podSecurityContext: {}
