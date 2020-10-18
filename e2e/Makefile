@@ -22,3 +22,7 @@ e2e-image: e2e-bin
 	$(MAKE) -C ../ crds-to-chart
 	cp -r ../deploy ./k8s
 	docker build -t ${IMG} .
+
+stop-kind:
+	kind delete cluster \
+		--name secret-manager \

@@ -15,17 +15,17 @@ Helm installation steps can be found on the chart readme at [artifacthub.io](htt
 ## Documentation
 
 Documentation and examples for supported external secret sources can be found in
-the [docs directory](docs/README.md) of this project.
+the [docs directory](docs/) of this project.
 
 ## Support
 
-If you encounter any issues whilst using secret-manager, we have a number of places you 
+If you encounter any issues whilst using secret-manager, we have a number of places you
 can use to try and get help.
 
 First of all we recommend looking at the [troubleshooting guide](docs/troubleshooting.md) of our documentation.
 
 The quickest way to ask a question is to first post on [#external-secrets](https://kubernetes.slack.com/archives/C017BF84G2Y)
-channel on the Kubernetes Slack. There are a lot of community members in this channel, and
+channel on the Kubernetes Slack. There are some community members in this channel, and
 you can often get an answer to your question straight away!
 
 You can also try [searching for an existing issue](https://github.com/itscontained/secret-manager/issues). Properly searching
@@ -42,4 +42,4 @@ ensuring the longevity and reliability of the project.
 Please take a look at our [issue tracker](https://github.com/itscontained/secret-manager/issues) if you are
 unsure where to start with getting involved!
 
-Developer documentation is available in the [official documentation](docs/contributing).
+Developer documentation is available in the [official documentation](docs/contributing/README.md).
