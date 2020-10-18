@@ -2,7 +2,7 @@ apiVersion: v2
 name: secret-manager
 description: External secret management for Kubernetes
 type: application
-version: 0.1.2
+version: 0.2.0
 appVersion: "%%APP_VERSION%%"
 keywords:
   - kubernetes
@@ -39,9 +39,9 @@ annotations:
   artifacthub.io/operator: "true"
   artifacthub.io/operatorCapabilities: "Basic Install"
   artifacthub.io/images: |
-    - name: Dockerhub Image
+    - name: Dockerhub
       image: "itscontained/secret-manager:%%APP_VERSION%%"
-    - name: Quay.io Image
+    - name: Quay.io
       image: "quay.io/itscontained/secret-manager:%%APP_VERSION%%"
-    - name: GHCR Image
+    - name: GHCR
       image: "ghcr.io/itscontained/secret-manager:%%APP_VERSION%%"
