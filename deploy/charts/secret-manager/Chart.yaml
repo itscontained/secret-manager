@@ -58,7 +58,7 @@ annotations:
       version: v1alpha1
       name: clustersecretstores.secret-manager.itscontained.io
       displayName: ClusterSecretStore
-      description: A SecretStore represents a secure external location for storing secrets, which can be referenced as part of `storeRef` fields
+      description: A ClusterSecretStore represents a secure external location for storing secrets, which can be referenced as part of `storeRef` fields
     - kind: ExternalSecret
       version: v1alpha1
       name: externalsecrets.secret-manager.itscontained.io
