@@ -2,7 +2,7 @@ apiVersion: v2
 name: secret-manager
 description: External secret management for Kubernetes
 type: application
-version: 0.2.1
+version: 0.2.2
 appVersion: "%%APP_VERSION%%"
 keywords:
   - kubernetes
@@ -49,6 +49,11 @@ annotations:
       image: "ghcr.io/itscontained/secret-manager:%%APP_VERSION%%"
       url: "https://github.com/orgs/itscontained/packages/container/package/secret-manager"
   artifacthub.io/crds: |
+    - kind: ExternalSecret
+      version: v1alpha1
+      name: externalsecrets.secret-manager.itscontained.io
+      displayName: ExternalSecret
+      description: An ExternalSecret resource can be created which will ensure a Secret is available with the referenced contents of the external store
     - kind: SecretStore
       version: v1alpha1
       name: secretstores.secret-manager.itscontained.io
@@ -59,12 +64,20 @@ annotations:
       name: clustersecretstores.secret-manager.itscontained.io
       displayName: ClusterSecretStore
       description: A ClusterSecretStore represents a secure external location for storing secrets, which can be referenced as part of `storeRef` fields
-    - kind: ExternalSecret
-      version: v1alpha1
-      name: externalsecrets.secret-manager.itscontained.io
-      displayName: ExternalSecret
-      description: An ExternalSecret resource can be created which will ensure a Secret is available with the referenced contents of the external store
   artifacthub.io/crdsExamples: |
+    - apiVersion: secret-manager.itscontained.io/v1alpha1
+      kind: ExternalSecret
+      metadata:
+        name: hello-service
+        namespace: example-ns
+      spec:
+        storeRef:
+          name: vault
+        data:
+        - secretKey: password
+          remoteRef:
+            name: teamA/hello-service
+            property: serviceBapiKey
     - apiVersion: secret-manager.itscontained.io/v1alpha1
       kind: SecretStore
       metadata:
@@ -94,16 +107,3 @@ annotations:
               role: example-role
               secretRef:
                 name: vault-secret
-    - apiVersion: secret-manager.itscontained.io/v1alpha1
-      kind: ExternalSecret
-      metadata:
-        name: hello-service
-        namespace: example-ns
-      spec:
-        storeRef:
-          name: vault
-        data:
-        - secretKey: password
-          remoteRef:
-            name: teamA/hello-service
-            property: serviceBapiKey

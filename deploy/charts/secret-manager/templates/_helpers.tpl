@@ -62,8 +62,6 @@ Create the name of the service account to use
 {{- end }}
 
 {{/* Force a failure if k8s version is too low */}}
-{{- if and (semverCompare ">= 1.15.0 < 1.16.0" .Capabilities.KubeVersion.GitVersion) .Values.installCRDs -}}
-  {{- fail "Kubernetes 1.15.x clusters must manually install the legacy CRDs" -}}
-{{- else if semverCompare "< 1.15.0" .Capabilities.KubeVersion.GitVersion -}}
-  {{- fail "Kubernetes versions prior to 1.15.x are not supported" -}}
+{{- if and (not .Capabilities.APIVersions.Has "apiextensions.k8s.io/v1") .Values.installCRDs -}}
+  {{- fail "\n\n ERROR: Kubernetes 1.15.x clusters must manually install the legacy CRDs" -}}
 {{- end }}
