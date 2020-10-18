@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 -->
 
-## [Unreleased](https://github.com/itscontained/secret-manager/compare/v0.2.0...HEAD)
+## [Unreleased](https://github.com/itscontained/secret-manager/compare/v0.3.0...HEAD)
+
+## [0.3.0](https://github.com/itscontained/secret-manager/compare/v0.2.0...v0.3.0)
 - Fix double base64 encoding of secrets ([#59](https://github.com/itscontained/secret-manager/pull/59) [@devth](https://github.com/devth))
 - Fix incorrect service account token path for vault store authentication ([#66](https://github.com/itscontained/secret-manager/pull/66) [@huguesalary](https://github.com/huguesalary))
 - Fix nil pointer panic on an error during vault store authentication([#65](https://github.com/itscontained/secret-manager/pull/65) [@huguesalary](https://github.com/huguesalary))
