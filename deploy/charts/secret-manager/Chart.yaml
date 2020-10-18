@@ -53,17 +53,17 @@ annotations:
       version: v1alpha1
       name: secretstores.secret-manager.itscontained.io
       displayName: SecretStore
-      description: Secret backend configuration (namespaced)
+      description: A SecretStore represents a secure external location for storing secrets, which can be referenced as part of `storeRef` fields (namespaced)
     - kind: ClusterSecretStore
       version: v1alpha1
       name: clustersecretstores.secret-manager.itscontained.io
       displayName: ClusterSecretStore
-      description: Secret backend configuration
+      description: A SecretStore represents a secure external location for storing secrets, which can be referenced as part of `storeRef` fields
     - kind: ExternalSecret
       version: v1alpha1
       name: externalsecrets.secret-manager.itscontained.io
       displayName: ExternalSecret
-      description: Secret definition bound to a (Cluster)SecretStore
+      description: An ExternalSecret resource can be created which will ensure a Secret is available with the referenced contents of the external store
   artifacthub.io/crdsExamples: |
     - apiVersion: secret-manager.itscontained.io/v1alpha1
       kind: SecretStore
