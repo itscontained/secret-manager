@@ -17,12 +17,14 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 	"github.com/itscontained/secret-manager/pkg/store"
 )
 
 var builder map[string]store.Factory
+var buildlock sync.RWMutex
 
 func init() {
 	builder = make(map[string]store.Factory)
@@ -36,6 +38,8 @@ func Register(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
 		panic(fmt.Sprintf("store error registering schema: %s", err.Error()))
 	}
 
+	buildlock.Lock()
+	defer buildlock.Unlock()
 	_, exists := builder[storeName]
 	if exists {
 		panic(fmt.Sprintf("store %q already registered", storeName))
@@ -52,11 +56,15 @@ func ForceRegister(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
 		panic(fmt.Sprintf("store error registering schema: %s", err.Error()))
 	}
 
+	buildlock.Lock()
 	builder[storeName] = s
+	buildlock.Unlock()
 }
 
 func GetStoreByName(name string) (store.Factory, bool) {
+	buildlock.RLock()
 	f, ok := builder[name]
+	buildlock.RUnlock()
 	return f, ok
 }
 
@@ -67,7 +75,9 @@ func GetStore(store smv1alpha1.GenericStore) (store.Factory, error) {
 		return nil, fmt.Errorf("store error for %s: %w", store.GetName(), err)
 	}
 
+	buildlock.RLock()
 	f, ok := builder[storeName]
+	buildlock.RUnlock()
 	if !ok {
 		return nil, fmt.Errorf("failed to find registered store backend for type: %s, name: %s", storeName, store.GetName())
 	}
