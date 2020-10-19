@@ -22,14 +22,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Client is a common interface for interacting with SecretStore
-// backends
+// Client is a common interface for interacting with SecretStore backends
 type Client interface {
+	New(ctx context.Context, store smv1alpha1.GenericStore, kube client.Client, namespace string) error
 	GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error)
 	GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error)
-}
-
-// Factory returns a StoreClient
-type Factory interface {
-	New(ctx context.Context, store smv1alpha1.GenericStore, kube client.Client, namespace string) (Client, error)
 }

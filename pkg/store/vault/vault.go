@@ -63,7 +63,7 @@ func init() {
 	})
 }
 
-func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) error {
 	log := ctxlog.FromContext(ctx)
 	v = &Vault{
 		kube:      kube,
@@ -74,12 +74,12 @@ func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctr
 
 	cfg, err := v.newConfig()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	client, err := vault.NewClient(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("error initializing Vault client: %s", err.Error())
+		return fmt.Errorf("error initializing Vault client: %s", err.Error())
 	}
 
 	if v.store.GetSpec().Vault.Namespace != nil {
@@ -87,12 +87,12 @@ func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctr
 	}
 
 	if err := v.setToken(ctx, client); err != nil {
-		return nil, err
+		return err
 	}
 
 	v.client = client
 
-	return v, nil
+	return nil
 }
 
 func (v *Vault) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {

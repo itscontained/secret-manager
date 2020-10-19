@@ -23,16 +23,16 @@ import (
 	"github.com/itscontained/secret-manager/pkg/store"
 )
 
-var builder map[string]store.Factory
+var builder map[string]store.Client
 var buildlock sync.RWMutex
 
 func init() {
-	builder = make(map[string]store.Factory)
+	builder = make(map[string]store.Client)
 }
 
 // Register a store backend type. Register panics if a
 // backend with the same store is already registered
-func Register(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
+func Register(s store.Client, storeSpec *smv1alpha1.SecretStoreSpec) {
 	storeName, err := getStoreBackend(storeSpec)
 	if err != nil {
 		panic(fmt.Sprintf("store error registering schema: %s", err.Error()))
@@ -50,7 +50,7 @@ func Register(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
 
 // ForceRegister adds to store schema, overwriting a store if
 // already registered. Should only be used for testing
-func ForceRegister(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
+func ForceRegister(s store.Client, storeSpec *smv1alpha1.SecretStoreSpec) {
 	storeName, err := getStoreBackend(storeSpec)
 	if err != nil {
 		panic(fmt.Sprintf("store error registering schema: %s", err.Error()))
@@ -61,14 +61,14 @@ func ForceRegister(s store.Factory, storeSpec *smv1alpha1.SecretStoreSpec) {
 	buildlock.Unlock()
 }
 
-func GetStoreByName(name string) (store.Factory, bool) {
+func GetStoreByName(name string) (store.Client, bool) {
 	buildlock.RLock()
 	f, ok := builder[name]
 	buildlock.RUnlock()
 	return f, ok
 }
 
-func GetStore(store smv1alpha1.GenericStore) (store.Factory, error) {
+func GetStore(store smv1alpha1.GenericStore) (store.Client, error) {
 	storeSpec := store.GetSpec()
 	storeName, err := getStoreBackend(storeSpec)
 	if err != nil {

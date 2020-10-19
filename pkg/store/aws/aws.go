@@ -64,7 +64,7 @@ func init() {
 	})
 }
 
-func (a *AWS) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+func (a *AWS) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) error {
 	log := ctxlog.FromContext(ctx)
 	a = &AWS{
 		kube:      kube,
@@ -75,11 +75,11 @@ func (a *AWS) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlc
 
 	cfg, err := a.newConfig(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	a.client = secretsmanager.New(*cfg)
-	return a, nil
+	return nil
 }
 
 func (a *AWS) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {

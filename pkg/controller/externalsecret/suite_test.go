@@ -44,7 +44,7 @@ var (
 	cfg          *rest.Config
 	k8sClient    client.Client
 	testEnv      *envtest.Environment
-	storeFactory *fakestore.Factory
+	storeFactory *fakestore.Client
 )
 
 func TestAPIs(t *testing.T) {
