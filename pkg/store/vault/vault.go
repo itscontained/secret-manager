@@ -58,7 +58,9 @@ type Vault struct {
 }
 
 func init() {
-	schema.Register("vault", &Vault{})
+	schema.Register(&Vault{}, &smv1alpha1.SecretStoreSpec{
+		Vault: &smv1alpha1.VaultStore{},
+	})
 }
 
 func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {

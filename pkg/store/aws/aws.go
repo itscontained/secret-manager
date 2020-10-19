@@ -59,7 +59,9 @@ type AWS struct {
 }
 
 func init() {
-	schema.Register("aws", &AWS{})
+	schema.Register(&AWS{}, &smv1alpha1.SecretStoreSpec{
+		AWS: &smv1alpha1.AWSStore{},
+	})
 }
 
 func (a *AWS) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {

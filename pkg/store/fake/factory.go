@@ -50,8 +50,8 @@ func New() *Factory {
 	return v
 }
 
-func (v *Factory) RegisterAs(name string) {
-	schema.ForceRegister(name, v)
+func (v *Factory) RegisterAs(storeSpec *smv1alpha1.SecretStoreSpec) {
+	schema.ForceRegister(v, storeSpec)
 }
 
 func (v *Factory) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {

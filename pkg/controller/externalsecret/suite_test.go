@@ -85,7 +85,9 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(k8sClient).ToNot(BeNil())
 
 	storeFactory = fakestore.New()
-	storeFactory.RegisterAs("vault")
+	storeFactory.RegisterAs(&sm1valpha1.SecretStoreSpec{
+		Vault: &sm1valpha1.VaultStore{},
+	})
 	err = (&ExternalSecretReconciler{
 		Client: k8sClient,
 		Reader: k8sManager.GetAPIReader(),

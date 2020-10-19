@@ -48,7 +48,9 @@ type GCP struct {
 }
 
 func init() {
-	schema.Register("gcp", &GCP{})
+	schema.Register(&GCP{}, &smv1alpha1.SecretStoreSpec{
+		GCP: &smv1alpha1.GCPStore{},
+	})
 }
 
 func (g *GCP) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {

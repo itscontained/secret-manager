@@ -29,7 +29,7 @@ func podRunningReady(p *corev1.Pod) (bool, error) {
 			p.ObjectMeta.Name, p.Spec.NodeName, corev1.PodRunning, p.Status.Phase)
 	}
 	// Check the ready condition is true.
-	if isPodReady(&p.Status) {
+	if !isPodReady(&p.Status) {
 		return false, fmt.Errorf("pod '%s' on '%s' didn't have condition {%v %v}; conditions: %v",
 			p.ObjectMeta.Name, p.Spec.NodeName, corev1.PodReady, corev1.ConditionTrue, p.Status.Conditions)
 	}
@@ -37,12 +37,10 @@ func podRunningReady(p *corev1.Pod) (bool, error) {
 }
 
 func isPodReady(s *corev1.PodStatus) bool {
-	var condition *corev1.PodCondition
-	for i, cond := range s.Conditions {
-		if cond.Type == corev1.PodReady {
-			s.Conditions[i].DeepCopyInto(condition)
-			break
+	for i := range s.Conditions {
+		if s.Conditions[i].Type == corev1.PodReady {
+			return s.Conditions[i].Status == corev1.ConditionTrue
 		}
 	}
-	return condition != nil && condition.Status == corev1.ConditionTrue
+	return false
 }

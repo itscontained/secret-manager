@@ -53,4 +53,4 @@ kubectl run --rm \
   --restart=Never \
   --env="FOCUS=${FOCUS}" \
   --overrides='{ "apiVersion": "v1", "spec":{"serviceAccountName": "secret-manager-e2e"}}' \
-  e2e --image=secret-manager-e2e:test
+  e2e --image=local/secret-manager-e2e:test

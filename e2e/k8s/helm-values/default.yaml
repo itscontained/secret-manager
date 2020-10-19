@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: secret-manager
+  repository: local/secret-manager
   pullPolicy: IfNotPresent
   tag: "test"
 

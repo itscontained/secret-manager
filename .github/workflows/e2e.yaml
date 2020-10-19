@@ -33,6 +33,7 @@ jobs:
           node_image: kindest/node:v1.19.1
           cluster_name: secret-manager
       - name: Run e2e tests
+        timeout-minutes: 30
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
           go get github.com/onsi/ginkgo/ginkgo
