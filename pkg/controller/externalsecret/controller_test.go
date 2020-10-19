@@ -22,6 +22,7 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
+	storeint "github.com/itscontained/secret-manager/pkg/store"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -141,8 +142,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 
 			storeFactory.WithNew(func(context.Context, smv1alpha1.GenericStore,
-				client.Client, string) error {
-				return fmt.Errorf("artificial test error")
+				client.Client, string) (storeint.Client, error) {
+				return nil, fmt.Errorf("artificial test error")
 			})
 
 			By("Creating the ExternalSecret successfully")
@@ -211,8 +212,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, smv1alpha1.GenericStore,
-				client.Client, string) error {
-				return nil
+				client.Client, string) (storeint.Client, error) {
+				return storeFactory, nil
 			})
 
 			By("Creating the ExternalSecret successfully")
@@ -309,8 +310,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			storeFactory.WithGetSecretMap(testSecretMap, nil)
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, smv1alpha1.GenericStore,
-				client.Client, string) error {
-				return nil
+				client.Client, string) (storeint.Client, error) {
+				return storeFactory, nil
 			})
 
 			By("Creating the ExternalSecret successfully")
@@ -398,8 +399,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			}
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, smv1alpha1.GenericStore,
-				client.Client, string) error {
-				return nil
+				client.Client, string) (storeint.Client, error) {
+				return storeFactory, nil
 			})
 
 			By("Creating the ExternalSecret successfully")
@@ -481,8 +482,8 @@ var _ = Describe("ExternalSecrets Controller", func() {
 			testSecretData := []byte("this-is-a-test-secret")
 			storeFactory.WithGetSecret(testSecretData, nil)
 			storeFactory.WithNew(func(context.Context, smv1alpha1.GenericStore,
-				client.Client, string) error {
-				return nil
+				client.Client, string) (storeint.Client, error) {
+				return storeFactory, nil
 			})
 
 			By("Creating the ExternalSecret successfully")

@@ -68,19 +68,21 @@ func GetStoreByName(name string) (store.Client, bool) {
 	return f, ok
 }
 
-func GetStore(store smv1alpha1.GenericStore) (store.Client, error) {
-	storeSpec := store.GetSpec()
+func GetStore(s smv1alpha1.GenericStore) (store.Client, error) {
+	storeSpec := s.GetSpec()
 	storeName, err := getStoreBackend(storeSpec)
 	if err != nil {
-		return nil, fmt.Errorf("store error for %s: %w", store.GetName(), err)
+		return nil, fmt.Errorf("store error for %s: %w", s.GetName(), err)
 	}
 
 	buildlock.RLock()
 	f, ok := builder[storeName]
 	buildlock.RUnlock()
+
 	if !ok {
-		return nil, fmt.Errorf("failed to find registered store backend for type: %s, name: %s", storeName, store.GetName())
+		return nil, fmt.Errorf("failed to find registered store backend for type: %s, name: %s", storeName, s.GetName())
 	}
+
 	return f, nil
 }
 

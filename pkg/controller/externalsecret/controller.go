@@ -94,7 +94,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
 
-		err = storeClient.New(ctx, s, r.Client, req.Namespace)
+		storeClient, err = storeClient.New(ctx, s, r.Client, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}

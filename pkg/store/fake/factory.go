@@ -28,7 +28,7 @@ var _ store.Client = &Client{}
 
 type Client struct {
 	NewFn func(context.Context, smv1alpha1.GenericStore, client.Client,
-		string) error
+		string) (store.Client, error)
 	GetSecretFn    func(context.Context, smv1alpha1.RemoteReference) ([]byte, error)
 	GetSecretMapFn func(context.Context, smv1alpha1.RemoteReference) (map[string][]byte, error)
 }
@@ -43,8 +43,8 @@ func New() *Client {
 		},
 	}
 
-	v.NewFn = func(context.Context, smv1alpha1.GenericStore, client.Client, string) error {
-		return nil
+	v.NewFn = func(context.Context, smv1alpha1.GenericStore, client.Client, string) (store.Client, error) {
+		return nil, nil
 	}
 
 	return v
@@ -77,16 +77,16 @@ func (v *Client) WithGetSecretMap(secData map[string][]byte, err error) *Client 
 }
 
 func (v *Client) WithNew(f func(context.Context, smv1alpha1.GenericStore, client.Client,
-	string) error) *Client {
+	string) (store.Client, error)) *Client {
 	v.NewFn = f
 	return v
 }
 
-func (v *Client) New(ctx context.Context, store smv1alpha1.GenericStore, kube client.Client, namespace string) error {
-	err := v.NewFn(ctx, store, kube, namespace)
+func (v *Client) New(ctx context.Context, store smv1alpha1.GenericStore, kube client.Client, namespace string) (store.Client, error) {
+	client, err := v.NewFn(ctx, store, kube, namespace)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return client, nil
 }

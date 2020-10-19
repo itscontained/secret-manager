@@ -53,19 +53,19 @@ func init() {
 	})
 }
 
-func (g *GCP) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) error {
+func (g *GCP) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
 	log := ctxlog.FromContext(ctx)
-	g = &GCP{
+	gcpClient := &GCP{
 		kube:  kube,
 		store: store,
 		log:   log,
 	}
-	err := g.newClient(ctx)
+	err := gcpClient.newClient(ctx)
 	if err != nil {
 		log.Error(err, "could not create new gcp client")
-		return err
+		return nil, err
 	}
-	return nil
+	return gcpClient, nil
 }
 
 func (g *GCP) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
