@@ -26,8 +26,10 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
-	storebase "github.com/itscontained/secret-manager/pkg/internal/store/base"
+	ctxlog "github.com/itscontained/secret-manager/pkg/log"
+	"github.com/itscontained/secret-manager/pkg/store"
+	_ "github.com/itscontained/secret-manager/pkg/store/register" // register known store backends
+	storeschema "github.com/itscontained/secret-manager/pkg/store/schema"
 	"github.com/itscontained/secret-manager/pkg/util/merge"
 
 	corev1 "k8s.io/api/core/v1"
@@ -60,13 +62,14 @@ type ExternalSecretReconciler struct {
 	Scheme *runtime.Scheme
 	Clock  clock.Clock
 
-	storeFactory store.Factory
-	Reader       client.Reader
+	Reader client.Reader
 }
 
 func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("externalsecret", req.NamespacedName)
+	ctx = ctxlog.IntoContext(ctx, log)
+
 	extSecret := &smv1alpha1.ExternalSecret{}
 	if err := r.Get(ctx, req.NamespacedName, extSecret); err != nil {
 		log.Error(err, "unable to get ExternalSecret")
@@ -86,7 +89,12 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errStoreNotFound, err)
 		}
 
-		storeClient, err := r.storeFactory.New(ctx, r.Log, s, r.Client, r.Reader, req.Namespace)
+		storeClient, err := storeschema.GetStore(s)
+		if err != nil {
+			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
+		}
+
+		storeClient, err = storeClient.New(ctx, s, r.Client, req.Namespace)
 		if err != nil {
 			return fmt.Errorf("%s: %w", errStoreSetupFailed, err)
 		}
@@ -129,10 +137,6 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 func (r *ExternalSecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if r.Clock == nil {
 		r.Clock = clock.RealClock{}
-	}
-
-	if r.storeFactory == nil {
-		r.storeFactory = &storebase.Default{}
 	}
 
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {

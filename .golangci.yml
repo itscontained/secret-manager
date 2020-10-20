@@ -60,7 +60,6 @@ linters:
     - errcheck
     - exhaustive
     - exportloopref
-    - gochecknoinits
     - goconst
     - gocritic
     - gocyclo

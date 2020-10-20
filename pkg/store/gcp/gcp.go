@@ -24,7 +24,9 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
+	ctxlog "github.com/itscontained/secret-manager/pkg/log"
+	"github.com/itscontained/secret-manager/pkg/store"
+	"github.com/itscontained/secret-manager/pkg/store/schema"
 
 	"google.golang.org/api/option"
 	"google.golang.org/api/secretmanager/v1"
@@ -39,53 +41,60 @@ import (
 var _ store.Client = &GCP{}
 
 type GCP struct {
-	kubeClient ctrlclient.Client
-	store      smv1alpha1.GenericStore
-	log        logr.Logger
-	client     *secretmanager.Service
+	kube   ctrlclient.Client
+	store  smv1alpha1.GenericStore
+	log    logr.Logger
+	client *secretmanager.Service
 }
 
-func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
-	g := &GCP{
-		kubeClient: kubeClient,
-		store:      store,
-		log:        log,
+func init() {
+	schema.Register(&GCP{}, &smv1alpha1.SecretStoreSpec{
+		GCP: &smv1alpha1.GCPStore{},
+	})
+}
+
+func (g *GCP) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+	log := ctxlog.FromContext(ctx)
+	gcpClient := &GCP{
+		kube:  kube,
+		store: store,
+		log:   log,
 	}
-	err := g.newClient(ctx)
+	err := gcpClient.newClient(ctx)
 	if err != nil {
 		log.Error(err, "could not create new gcp client")
 		return nil, err
 	}
-	return g, nil
+	return gcpClient, nil
 }
 
-func (g *GCP) GetSecret(_ context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
+func (g *GCP) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
 	version := "latest"
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	data, err := g.readSecret(ref.Name, version)
+	data, err := g.readSecret(ctx, ref.Name, version)
 	if err != nil {
 		return nil, err
 	}
 	return data[ref.Name], nil
 }
 
-func (g *GCP) GetSecretMap(_ context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
+func (g *GCP) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
 	version := "latest"
 	if ref.Version != nil {
 		version = *ref.Version
 	}
-	return g.readSecret(ref.Name, version)
+	return g.readSecret(ctx, ref.Name, version)
 }
 
-func (g *GCP) readSecret(id, version string) (map[string][]byte, error) {
+func (g *GCP) readSecret(ctx context.Context, id, version string) (map[string][]byte, error) {
 	projectID := g.store.GetSpec().GCP.ProjectID
 	name := id
 	if !strings.HasPrefix(id, "projects/") && projectID != nil {
 		name = fmt.Sprintf("projects/%s/secrets/%s/versions/%s", *projectID, id, version)
 	}
-	resp, err := g.client.Projects.Secrets.Versions.Access(name).Do()
+	resp, err := g.client.Projects.Secrets.Versions.Access(name).Context(ctx).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +160,7 @@ func (g *GCP) secretKeyRef(ctx context.Context, namespace string, secretRef smme
 		Namespace: namespace,
 		Name:      secretRef.Name,
 	}
-	err := g.kubeClient.Get(ctx, ref, &secret)
+	err := g.kube.Get(ctx, ref, &secret)
 	if err != nil {
 		return "", err
 	}

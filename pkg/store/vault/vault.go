@@ -29,7 +29,9 @@ import (
 	vault "github.com/hashicorp/vault/api"
 
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
+	ctxlog "github.com/itscontained/secret-manager/pkg/log"
+	"github.com/itscontained/secret-manager/pkg/store"
+	"github.com/itscontained/secret-manager/pkg/store/schema"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -48,22 +50,29 @@ type Client interface {
 }
 
 type Vault struct {
-	kubeClient ctrlclient.Client
-	store      smv1alpha1.GenericStore
-	namespace  string
-	log        logr.Logger
-	client     Client
+	kube      ctrlclient.Client
+	store     smv1alpha1.GenericStore
+	namespace string
+	log       logr.Logger
+	client    Client
 }
 
-func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore, namespace string) (store.Client, error) {
-	v := &Vault{
-		kubeClient: kubeClient,
-		namespace:  namespace,
-		store:      store,
-		log:        log,
+func init() {
+	schema.Register(&Vault{}, &smv1alpha1.SecretStoreSpec{
+		Vault: &smv1alpha1.VaultStore{},
+	})
+}
+
+func (v *Vault) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+	log := ctxlog.FromContext(ctx)
+	vClient := &Vault{
+		kube:      kube,
+		namespace: namespace,
+		store:     store,
+		log:       log,
 	}
 
-	cfg, err := v.newConfig()
+	cfg, err := vClient.newConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -73,17 +82,17 @@ func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, sto
 		return nil, fmt.Errorf("error initializing Vault client: %s", err.Error())
 	}
 
-	if v.store.GetSpec().Vault.Namespace != nil {
-		client.SetNamespace(*v.store.GetSpec().Vault.Namespace)
+	if vClient.store.GetSpec().Vault.Namespace != nil {
+		client.SetNamespace(*vClient.store.GetSpec().Vault.Namespace)
 	}
 
-	if err := v.setToken(ctx, client); err != nil {
+	if err := vClient.setToken(ctx, client); err != nil {
 		return nil, err
 	}
 
-	v.client = client
+	vClient.client = client
 
-	return v, nil
+	return vClient, nil
 }
 
 func (v *Vault) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
@@ -232,7 +241,7 @@ func (v *Vault) secretKeyRef(ctx context.Context, namespace, name, key string) (
 		Namespace: namespace,
 		Name:      name,
 	}
-	err := v.kubeClient.Get(ctx, ref, secret)
+	err := v.kube.Get(ctx, ref, secret)
 	if err != nil {
 		return "", err
 	}

@@ -32,7 +32,9 @@ import (
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
+	ctxlog "github.com/itscontained/secret-manager/pkg/log"
+	"github.com/itscontained/secret-manager/pkg/store"
+	"github.com/itscontained/secret-manager/pkg/store/schema"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -49,26 +51,35 @@ const (
 )
 
 type AWS struct {
-	kubeClient ctrlclient.Client
-	store      smv1alpha1.GenericStore
-	log        logr.Logger
-	client     *secretsmanager.Client
+	kube      ctrlclient.Client
+	store     smv1alpha1.GenericStore
+	log       logr.Logger
+	client    *secretsmanager.Client
+	namespace string
 }
 
-func New(ctx context.Context, log logr.Logger, kubeClient ctrlclient.Client, store smv1alpha1.GenericStore) (store.Client, error) {
-	v := &AWS{
-		kubeClient: kubeClient,
-		store:      store,
-		log:        log,
+func init() {
+	schema.Register(&AWS{}, &smv1alpha1.SecretStoreSpec{
+		AWS: &smv1alpha1.AWSStore{},
+	})
+}
+
+func (a *AWS) New(ctx context.Context, store smv1alpha1.GenericStore, kube ctrlclient.Client, namespace string) (store.Client, error) {
+	log := ctxlog.FromContext(ctx)
+	awsClient := &AWS{
+		kube:      kube,
+		store:     store,
+		log:       log,
+		namespace: namespace,
 	}
 
-	cfg, err := v.newConfig(ctx)
+	cfg, err := awsClient.newConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	v.client = secretsmanager.New(*cfg)
-	return v, nil
+	awsClient.client = secretsmanager.New(*cfg)
+	return awsClient, nil
 }
 
 func (a *AWS) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
@@ -174,7 +185,7 @@ func (a *AWS) secretKeyRef(ctx context.Context, namespace string, secretRef smme
 	if !scoped && secretRef.Namespace != nil {
 		ref.Namespace = *secretRef.Namespace
 	}
-	err := a.kubeClient.Get(ctx, ref, &secret)
+	err := a.kube.Get(ctx, ref, &secret)
 	if err != nil {
 		return "", err
 	}

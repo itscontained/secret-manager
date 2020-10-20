@@ -17,25 +17,24 @@ package fake
 import (
 	"context"
 
-	"github.com/go-logr/logr"
-
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
-	"github.com/itscontained/secret-manager/pkg/internal/store"
+	"github.com/itscontained/secret-manager/pkg/store"
+	"github.com/itscontained/secret-manager/pkg/store/schema"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ store.Factory = &Factory{}
+var _ store.Client = &Client{}
 
-type Factory struct {
-	NewFn func(context.Context, logr.Logger, client.Client, client.Reader, smv1alpha1.GenericStore,
-		string) (*Factory, error)
+type Client struct {
+	NewFn func(context.Context, smv1alpha1.GenericStore, client.Client,
+		string) (store.Client, error)
 	GetSecretFn    func(context.Context, smv1alpha1.RemoteReference) ([]byte, error)
 	GetSecretMapFn func(context.Context, smv1alpha1.RemoteReference) (map[string][]byte, error)
 }
 
-func New() *Factory {
-	v := &Factory{
+func New() *Client {
+	v := &Client{
 		GetSecretFn: func(context.Context, smv1alpha1.RemoteReference) ([]byte, error) {
 			return nil, nil
 		},
@@ -44,47 +43,50 @@ func New() *Factory {
 		},
 	}
 
-	v.NewFn = func(context.Context, logr.Logger, client.Client, client.Reader, smv1alpha1.GenericStore,
-		string) (*Factory, error) {
-		return v, nil
+	v.NewFn = func(context.Context, smv1alpha1.GenericStore, client.Client, string) (store.Client, error) {
+		return nil, nil
 	}
 
 	return v
 }
 
-func (v *Factory) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
+func (v *Client) RegisterAs(storeSpec *smv1alpha1.SecretStoreSpec) {
+	schema.ForceRegister(v, storeSpec)
+}
+
+func (v *Client) GetSecret(ctx context.Context, ref smv1alpha1.RemoteReference) ([]byte, error) {
 	return v.GetSecretFn(ctx, ref)
 }
 
-func (v *Factory) WithGetSecret(secData []byte, err error) *Factory {
+func (v *Client) WithGetSecret(secData []byte, err error) *Client {
 	v.GetSecretFn = func(context.Context, smv1alpha1.RemoteReference) ([]byte, error) {
 		return secData, err
 	}
 	return v
 }
 
-func (v *Factory) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
+func (v *Client) GetSecretMap(ctx context.Context, ref smv1alpha1.RemoteReference) (map[string][]byte, error) {
 	return v.GetSecretMapFn(ctx, ref)
 }
 
-func (v *Factory) WithGetSecretMap(secData map[string][]byte, err error) *Factory {
+func (v *Client) WithGetSecretMap(secData map[string][]byte, err error) *Client {
 	v.GetSecretMapFn = func(context.Context, smv1alpha1.RemoteReference) (map[string][]byte, error) {
 		return secData, err
 	}
 	return v
 }
 
-func (v *Factory) WithNew(f func(context.Context, logr.Logger, client.Client, client.Reader, smv1alpha1.GenericStore,
-	string) (*Factory, error)) *Factory {
+func (v *Client) WithNew(f func(context.Context, smv1alpha1.GenericStore, client.Client,
+	string) (store.Client, error)) *Client {
 	v.NewFn = f
 	return v
 }
 
-func (v *Factory) New(ctx context.Context, log logr.Logger, store smv1alpha1.GenericStore, kubeClient client.Client, kubeReader client.Reader, namespace string) (store.Client, error) {
-	_, err := v.NewFn(ctx, log, kubeClient, kubeReader, store, namespace)
+func (v *Client) New(ctx context.Context, store smv1alpha1.GenericStore, kube client.Client, namespace string) (store.Client, error) {
+	client, err := v.NewFn(ctx, store, kube, namespace)
 	if err != nil {
 		return nil, err
 	}
 
-	return v, nil
+	return client, nil
 }
