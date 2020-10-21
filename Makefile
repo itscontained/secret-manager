@@ -69,7 +69,12 @@ build-multiarch: # Build multi-arch manager binary
 
 manifests: controller-gen ## Generate CRD manifests
 	$(CONTROLLER_GEN) "crd:crdVersions=v1" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds
-	$(CONTROLLER_GEN) "crd:crdVersions=v1beta1,preserveUnknownFields=false" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds/legacy
+	$(CONTROLLER_GEN) "crd:crdVersions=v1beta1,trivialVersions=true" paths="./pkg/apis/..." output:crd:artifacts:config=deploy/crds/legacy
+	# fix v1beta1 crds - see https://github.com/kubernetes-sigs/controller-tools/issues/445
+	grep -lR "default:" deploy/crds/legacy | xargs sed -i '/default:/d'
+	grep -lR "x-kubernetes-preserve-unknown-fields:" deploy/crds/legacy | xargs sed -i '/x-kubernetes-preserve-unknown-fields:/d'
+	cat deploy/crds/legacy/secret-manager.itscontained.io_*.yaml > deploy/crds/legacy/v1beta1_crds_secret-manager.itscontained.io.yaml
+	rm deploy/crds/legacy/secret-manager.itscontained.io_*.yaml
 
 generate: controller-gen ## Generate CRD code
 	$(CONTROLLER_GEN) object:headerFile="build/boilerplate.go.txt" paths="./pkg/apis/..."
