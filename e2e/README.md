@@ -7,7 +7,7 @@
 ### Prerequisites
 
 * docker
-* kind
+* kind `v.0.9.0` or greater
 * ginkgo
 * kubectl
 
