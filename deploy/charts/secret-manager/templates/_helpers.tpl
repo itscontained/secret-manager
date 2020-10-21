@@ -67,5 +67,5 @@ Create the name of the service account to use
 
 {{/* Force a failure if k8s version is too low */}}
 {{- if and (not .Capabilities.APIVersions.Has "apiextensions.k8s.io/v1") .Values.installCRDs -}}
-  {{- fail "\n\n ERROR: Kubernetes 1.15.x clusters must manually install the legacy CRDs" -}}
+  {{- fail "\n\n ERROR: Kubernetes <1.15 clusters must install the legacy CRDs" -}}
 {{- end }}
