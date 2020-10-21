@@ -2,7 +2,7 @@ name: e2e
 on:
   push:
     branches:
-    - master
+    - '*'
     tags:
       - 'v*.*.*'
     paths:
@@ -12,7 +12,9 @@ on:
       - 'go.sum'
       - 'Dockerfile'
   pull_request:
-    branches: master
+    branches:
+      - '*'
+    tags:
     paths:
       - 'cmd/**'
       - 'pkg/**'
