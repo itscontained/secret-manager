@@ -8,14 +8,18 @@ on:
     paths:
       - 'cmd/**'
       - 'pkg/**'
+      - 'e2e/**'
       - 'go.mod'
       - 'go.sum'
       - 'Dockerfile'
   pull_request:
-    branches: master
+    branches:
+      - master
+    tags:
     paths:
       - 'cmd/**'
       - 'pkg/**'
+      - 'e2e/**'
       - 'go.mod'
       - 'go.sum'
       - 'Dockerfile'
@@ -30,6 +34,7 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.0.0
         with:
+          version: v0.9.0
           node_image: kindest/node:v1.19.1
           cluster_name: secret-manager
       - name: Run e2e tests
