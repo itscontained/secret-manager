@@ -2,7 +2,7 @@ name: e2e
 on:
   push:
     branches:
-    - '*'
+    - master
     tags:
       - 'v*.*.*'
     paths:
@@ -14,7 +14,7 @@ on:
       - 'Dockerfile'
   pull_request:
     branches:
-      - '*'
+      - master
     tags:
     paths:
       - 'cmd/**'
