@@ -25,9 +25,6 @@ COPY --from=builder /usr/local/bin/helm /usr/local/bin/
 
 COPY entrypoint.sh                  /entrypoint.sh
 COPY e2e.test                       /e2e.test
-COPY wait-for-secret-manager.sh     /wait-for-secret-manager.sh
-COPY wait-for-localstack.sh         /wait-for-localstack.sh
 COPY k8s                            /k8s
-COPY localstack.deployment.yaml     /localstack.deployment.yaml
 
 CMD [ "/entrypoint.sh" ]

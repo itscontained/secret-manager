@@ -39,8 +39,6 @@ kind: Service
 metadata:
   name: localstack
 spec:
-  # selector tells Kubernetes what Deployment this Service
-  # belongs to
   selector:
     app: localstack
   ports:

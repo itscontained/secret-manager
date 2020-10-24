@@ -34,7 +34,7 @@ import (
 )
 
 var _ = ginkgo.Describe("[aws]", func() {
-	f := framework.NewDefaultFramework("aws", "default")
+	f := framework.NewDefaultFramework("aws", "secret-manager")
 
 	ginkgo.BeforeEach(func() {
 		err := f.NewLocalstack(f.Namespace)
