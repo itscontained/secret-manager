@@ -94,7 +94,7 @@ type ExternalSecretStatus struct {
 
 // +kubebuilder:object:root=true
 
-// ExternalSecret is the Schema for the externalsecrets API
+// ExternalSecret resource can be created which will ensure a Secret is available with the referenced contents of the external store
 // +kubebuilder:printcolumn:name="LAST SYNC",type="date",JSONPath=".status.conditions[?(@.type=='Ready')].lastTransitionTime"
 // +kubebuilder:printcolumn:name="SYNCED",type="string",JSONPath=".status.conditions[?(@.type=='Ready')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"

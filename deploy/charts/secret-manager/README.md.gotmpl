@@ -8,14 +8,23 @@
 
 ## TL;DR
 ```console
-$ helm repo add {{ $org }} {{ $chartRepo }}
-$ helm install {{ $org }}/{{ template "chart.name" . }}
+helm repo add {{ $org }} {{ $chartRepo }}
+helm install {{ $org }}/{{ template "chart.name" . }}
 ```
 
 ## Installing the Chart
 To install the chart with the release name `{{ template "chart.name" . }}`:
 ```console
 helm install {{ template "chart.name" . }} {{ $org }}/{{ template "chart.name" . }}
+```
+
+### Custom Resources
+By default, the chart will install secret-manager's CRDs, this can be controlled with `installCRDs` value.
+> Note: If you're using a Kubernetes version below v1.15 you will need to install the legacy version of the custom resource definitions. The legacy CRDs are maintained on a best-effort basis.
+
+```bash
+# Kubernetes <1.15
+kubectl apply -f https://raw.githubusercontent.com/itscontained/secret-manager/{{ template "chart.appVersion" . }}/deploy/crds/legacy/v1beta1_crds_secret-manager.itscontained.io.yaml
 ```
 
 ## Uninstalling the Chart
