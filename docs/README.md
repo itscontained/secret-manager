@@ -4,7 +4,7 @@
 
 ## [Troubleshooting](./troubleshooting.md)
 
-## [Contributing](./contributing.md)
+## [Contributing](./contributing)
 
 ## FAQ
 
