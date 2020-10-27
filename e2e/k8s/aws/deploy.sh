@@ -29,7 +29,7 @@ function on_exit {
 
     test $error_code == 0 && return;
 
-    echo "Obtaining secret-manager pod logs..."
+    echo "Obtaining aws localstack pod logs..."
     kubectl logs --selector=app=localstack -n "$NAMESPACE"
 }
 trap on_exit EXIT

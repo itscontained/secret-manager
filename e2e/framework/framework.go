@@ -149,14 +149,3 @@ func (f *Framework) deleteSecretManager() error {
 	}
 	return nil
 }
-
-// NewLocalstack deploys a fresh localstack instance into the specified namespace
-func (f *Framework) NewLocalstack(namespace string) error {
-	ginkgo.By("launching localstack")
-	cmd := exec.Command("/k8s/aws/deploy-localstack.sh", namespace, f.HelmValues)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("unexpected error creating localstack: %v.\nLogs:\n%v", err, string(out))
-	}
-	return nil
-}

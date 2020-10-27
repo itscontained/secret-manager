@@ -17,7 +17,8 @@ RUN apk add -U --no-cache \
     curl \
     tzdata \
     libc6-compat \
-    openssl
+    openssl \
+    jq
 
 COPY --from=builder /go/bin/ginkgo /usr/local/bin/
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/

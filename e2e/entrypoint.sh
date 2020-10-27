@@ -39,7 +39,7 @@ ginkgo_args=(
   "-slowSpecThreshold=${SLOW_E2E_THRESHOLD}"
   "-r"
   "-v"
-  "-timeout=30m"
+  "-timeout=5m"
 )
 
 echo -e "${BGREEN}Running e2e test suite (FOCUS=${FOCUS})...${NC}"
