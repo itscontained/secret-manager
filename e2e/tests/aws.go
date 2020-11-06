@@ -21,7 +21,6 @@ import (
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
 	smv1alpha1 "github.com/itscontained/secret-manager/pkg/apis/secretmanager/v1alpha1"
 
-	// use dot imports
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/gomega"
 
@@ -34,7 +33,7 @@ import (
 )
 
 var _ = ginkgo.Describe("[aws]", func() {
-	f := framework.NewDefaultFramework("aws", "default")
+	f := framework.NewDefaultFramework("aws", "secret-manager")
 
 	ginkgo.BeforeEach(func() {
 		err := f.NewLocalstack(f.Namespace)

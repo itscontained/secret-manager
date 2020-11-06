@@ -130,7 +130,7 @@ func (f *Framework) AfterEach() {
 func (f *Framework) newSecretManager() error {
 	ginkgo.By("launching secret-manager")
 	//nolint:gosec
-	cmd := exec.Command("/wait-for-secret-manager.sh", f.Namespace, f.HelmValues, fmt.Sprintf("secret-manager-%s", f.BaseName))
+	cmd := exec.Command("/k8s/deploy-secret-manager.sh", f.Namespace, f.HelmValues, fmt.Sprintf("secret-manager-%s", f.BaseName))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("unexpected error creating secret-manager: %v.\nLogs:\n%v", err, string(out))
@@ -146,17 +146,6 @@ func (f *Framework) deleteSecretManager() error {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("unexpected error deleting secret-manager: %v.\nLogs:\n%v", err, string(out))
-	}
-	return nil
-}
-
-// NewLocalstack deploys a fresh localstack instance into the specified namespace
-func (f *Framework) NewLocalstack(namespace string) error {
-	ginkgo.By("launching localstack")
-	cmd := exec.Command("/wait-for-localstack.sh", namespace, f.HelmValues)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("unexpected error creating localstack: %v.\nLogs:\n%v", err, string(out))
 	}
 	return nil
 }

@@ -17,11 +17,18 @@ package framework
 import (
 	"context"
 	"fmt"
+	"os/exec"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+
+	"github.com/onsi/ginkgo"
+)
+
+const (
+	localstackDeploy = "/k8s/aws/deploy.sh"
 )
 
 // CreateAWSSecretsManagerSecret creates a sm secret with the given value
@@ -42,7 +49,7 @@ func CreateAWSSecretsManagerSecret(namespace, name, secret string) error {
 	return err
 }
 
-// localResolver resolves endpoints to
+// localResolver resolves endpoints to e2e localstack
 type localResolver struct {
 	endpoints.Resolver
 	namespace string
@@ -53,4 +60,15 @@ func (r *localResolver) ResolveEndpoint(service, region string) (aws.Endpoint, e
 	return aws.Endpoint{
 		URL: fmt.Sprintf("http://localstack.%s", r.namespace),
 	}, nil
+}
+
+// NewLocalstack deploys a fresh localstack instance into the specified namespace
+func (f *Framework) NewLocalstack(namespace string) error {
+	ginkgo.By("launching localstack")
+	cmd := exec.Command(localstackDeploy, namespace, f.HelmValues)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("unexpected error creating localstack: %v.\nLogs:\n%v", err, string(out))
+	}
+	return nil
 }

@@ -48,9 +48,10 @@ echo -e "Starting the e2e test pod"
 FOCUS=${FOCUS:-.*}
 export FOCUS
 
-kubectl run --rm \
+kubectl run e2e \
+  --rm \
   --attach \
   --restart=Never \
   --env="FOCUS=${FOCUS}" \
   --overrides='{ "apiVersion": "v1", "spec":{"serviceAccountName": "secret-manager-e2e"}}' \
-  e2e --image=local/secret-manager-e2e:test
+  --image=local/secret-manager-e2e:test

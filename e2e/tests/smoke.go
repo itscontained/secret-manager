@@ -27,7 +27,7 @@ import (
 )
 
 var _ = ginkgo.Describe("[smoke]", func() {
-	f := framework.NewDefaultFramework("smoke", "default")
+	f := framework.NewDefaultFramework("smoke", "secret-manager")
 
 	ginkgo.It("should expose metrics", func() {
 		po, err := framework.WaitForSMPod(f.Namespace, f.KubeClient)
