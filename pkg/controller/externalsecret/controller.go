@@ -111,7 +111,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errGetSecretDataFailed, err)
 		}
 
-		if &extSecret.Spec.Template != nil && extSecret.Spec.Template.Raw != nil {
+		if extSecret.Spec.Template.Raw != nil {
 			err = r.templateSecret(secret, extSecret.Spec.Template)
 			if err != nil {
 				return fmt.Errorf("%s: %w", errTemplateFailed, err)
