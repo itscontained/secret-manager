@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
 	"time"
 
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
@@ -377,7 +378,9 @@ var _ = Describe("ExternalSecrets Controller", func() {
 						},
 					},
 				},
-				Template: templateObjectBytes,
+				Template: runtime.RawExtension{
+					Raw: templateObjectBytes,
+				},
 			}
 
 			key := types.NamespacedName{
@@ -463,7 +466,9 @@ var _ = Describe("ExternalSecrets Controller", func() {
 						},
 					},
 				},
-				Template: templateObjectBytes,
+				Template: runtime.RawExtension{
+					Raw: templateObjectBytes,
+				},
 			}
 
 			key := types.NamespacedName{
