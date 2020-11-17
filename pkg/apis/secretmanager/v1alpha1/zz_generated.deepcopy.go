@@ -199,11 +199,7 @@ func (in *ExternalSecretList) DeepCopyObject() runtime.Object {
 func (in *ExternalSecretSpec) DeepCopyInto(out *ExternalSecretSpec) {
 	*out = *in
 	out.StoreRef = in.StoreRef
-	if in.Template != nil {
-		in, out := &in.Template, &out.Template
-		*out = make([]byte, len(*in))
-		copy(*out, *in)
-	}
+	in.Template.DeepCopyInto(&out.Template)
 	if in.Data != nil {
 		in, out := &in.Data, &out.Data
 		*out = make([]KeyReference, len(*in))

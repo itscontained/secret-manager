@@ -16,6 +16,7 @@ package v1alpha1
 
 import (
 	smmeta "github.com/itscontained/secret-manager/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -37,7 +38,7 @@ type ExternalSecretSpec struct {
 	// +kubebuilder:validation:Format=any
 	// +kubebuilder:pruning:PreserveUnknownFields
 	// +optional
-	Template []byte `json:"template,omitempty"`
+	Template runtime.RawExtension `json:"template,omitempty"`
 
 	// Data is a list of references to secret values.
 	// +optional

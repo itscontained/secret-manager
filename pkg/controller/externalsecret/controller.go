@@ -111,7 +111,7 @@ func (r *ExternalSecretReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 			return fmt.Errorf("%s: %w", errGetSecretDataFailed, err)
 		}
 
-		if extSecret.Spec.Template != nil {
+		if &extSecret.Spec.Template != nil && extSecret.Spec.Template.Raw != nil {
 			err = r.templateSecret(secret, extSecret.Spec.Template)
 			if err != nil {
 				return fmt.Errorf("%s: %w", errTemplateFailed, err)
@@ -202,9 +202,9 @@ func (r *ExternalSecretReconciler) getStore(ctx context.Context, extSecret *smv1
 	return secretStore, nil
 }
 
-func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template []byte) error {
+func (r *ExternalSecretReconciler) templateSecret(secret *corev1.Secret, template runtime.RawExtension) error {
 	templatedSecret := &corev1.Secret{}
-	if err := json.Unmarshal(template, templatedSecret); err != nil {
+	if err := json.Unmarshal(template.Raw, templatedSecret); err != nil {
 		return fmt.Errorf("error unmarshalling json: %w", err)
 	}
 
