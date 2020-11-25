@@ -3,3 +3,4 @@ bin
 deploy
 docs
 e2e
+*.bak
