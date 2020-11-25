@@ -23,6 +23,7 @@ bin
 *.swp
 *.swo
 *~
+*.bak
 
 deploy/charts/secret-manager/README.md
 
